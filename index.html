@@ -565,6 +565,27 @@
         margin: 8px 16px;
         box-shadow: var(--card-shadow);
       }
+
+      /* 認證模態框輸入框樣式 */
+      #auth-modal ion-item {
+        --background: rgba(255, 255, 255, 0.95);
+        --border-radius: 12px;
+        margin-bottom: 16px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      #auth-modal ion-input {
+        --placeholder-color: #999;
+        --color: #333;
+        --padding-start: 16px;
+        --padding-end: 16px;
+        font-size: 16px;
+      }
+
+      #auth-modal ion-input:focus-within {
+        --placeholder-color: #666;
+      }
     </style>
   </head>
   <body>
@@ -660,12 +681,22 @@
       <ion-content style="padding: 20px;">
         <form id="auth-form">
           <ion-item>
-            <ion-label position="floating">用戶名</ion-label>
-            <ion-input id="username" type="text" required></ion-input>
+            <ion-input 
+              id="username" 
+              type="text" 
+              placeholder="用戶名稱" 
+              required
+              clear-input="true"
+            ></ion-input>
           </ion-item>
           <ion-item>
-            <ion-label position="floating">密碼</ion-label>
-            <ion-input id="password" type="password" required></ion-input>
+            <ion-input 
+              id="password" 
+              type="password" 
+              placeholder="密碼" 
+              required
+              clear-input="true"
+            ></ion-input>
           </ion-item>
           <ion-button type="submit" expand="block" style="margin-top: 20px;">
             <span id="auth-submit-text">登入</span>
