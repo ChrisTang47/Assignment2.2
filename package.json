@@ -1,0 +1,21 @@
+{
+  "name": "yoga-poses-app",
+  "version": "1.0.0",
+  "description": "習作二：瑜伽動作 API 整合應用",
+  "main": "index.html",
+  "scripts": {
+    "dev": "esbuild src/app.ts --bundle --outfile=dist/app.js --watch --servedir=. --port=3000",
+    "build": "esbuild src/app.ts --bundle --outfile=dist/app.js --minify",
+    "format": "prettier --write \"src/**/*.{ts,js,css,html}\"",
+    "serve": "npx http-server . -p 3000"
+  },
+  "keywords": ["typescript", "api", "mobile", "yoga", "ionic"],
+  "author": "Tang Kwok Wai",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.19.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0",
+    "http-server": "^14.1.1"
+  }
+}
