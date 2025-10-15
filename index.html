@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>主題清單</title>
+    <!-- Ionic CDN -->
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css"
+    />
+    <style>
+      /* 運動風格的全局設置 */
+      :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        --hover-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+        --border-radius: 16px;
+        --text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* 背景設置 */
+      ion-app {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f8bbd9 50%, #e1f5fe 100%);
+        min-height: 100vh;
+      }
+
+      /* 標題欄運動風格 */
+      ion-header {
+        background: var(--primary-gradient);
+        box-shadow: var(--card-shadow);
+      }
+
+      ion-toolbar {
+        --background: transparent;
+        --color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      ion-title {
+        font-weight: bold;
+        font-size: 1.4em;
+        text-shadow: var(--text-shadow);
+        letter-spacing: 0.5px;
+        text-align: center;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* 搜索欄運動風格 */
+      ion-searchbar {
+        --background: rgba(255, 255, 255, 0.95);
+        --border-radius: 25px;
+        --box-shadow: var(--card-shadow);
+        margin: 8px 16px;
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+      }
+
+      /* 分類選擇器 */
+      ion-item {
+        --background: rgba(255, 255, 255, 0.9);
+        --border-radius: 20px;
+        margin: 0 16px 8px 16px;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+      }
+
+      /* 內容區域 */
+      ion-content {
+        --background: transparent;
+        --padding-start: 16px;
+        --padding-end: 16px;
+        --padding-top: 16px;
+      }
+
+      /* 列表項目運動卡片風格 */
+      .list-item {
+        --background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+        --border-radius: var(--border-radius);
+        --box-shadow: var(--card-shadow);
+        margin-bottom: 20px;
+        border-radius: var(--border-radius);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .list-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+      }
+
+      .list-item:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--hover-shadow);
+      }
+
+      /* 內容容器 */
+      .item-content {
+        width: 100%;
+        padding: 20px;
+        background: transparent;
+      }
+
+      /* 姿勢名稱 - 運動標題風格 */
+      .item-pose {
+        font-weight: 800;
+        font-size: 1.3em;
+        margin: 0 0 12px 0;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 0.5px;
+      }
+
+      /* 級別 - 運動徽章風格 */
+      .item-level {
+        display: inline-block;
+        background: var(--secondary-gradient);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+        margin-bottom: 12px;
+        text-shadow: var(--text-shadow);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      /* 類型 */
+      .item-type {
+        color: #666;
+        font-size: 0.9em;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      /* 好處說明 */
+      .item-benefits {
+        background: rgba(76, 175, 80, 0.1);
+        padding: 12px;
+        border-radius: 12px;
+        border-left: 4px solid #4CAF50;
+        margin: 12px 0;
+        font-size: 0.95em;
+        line-height: 1.5;
+      }
+
+      /* 要點說明 */
+      .item-keys {
+        background: rgba(33, 150, 243, 0.1);
+        padding: 12px;
+        border-radius: 12px;
+        border-left: 4px solid #2196F3;
+        margin: 12px 0;
+        font-size: 0.95em;
+        line-height: 1.5;
+      }
+
+      /* 注意事項 */
+      .item-cautions {
+        background: rgba(255, 152, 0, 0.1);
+        padding: 12px;
+        border-radius: 12px;
+        border-left: 4px solid #FF9800;
+        margin: 12px 0;
+        font-size: 0.95em;
+        line-height: 1.5;
+      }
+
+      /* 媒體容器運動風格 */
+      .media-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin: 16px 0;
+      }
+
+      @media (min-width: 769px) {
+        .media-container {
+          flex-direction: row;
+          justify-content: center;
+          align-items: flex-start;
+        }
+      }
+
+      /* 圖片容器運動風格 */
+      .item-image-container {
+        text-align: center;
+        min-width: 300px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+      }
+
+      .item-image {
+        width: 100%;
+        max-width: 550px;
+        min-width: 300px;
+        height: 310px;
+        object-fit: cover;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        border: 3px solid transparent;
+        background: var(--success-gradient);
+        background-clip: padding-box;
+      }
+
+      .item-image:hover {
+        transform: scale(1.02);
+        box-shadow: var(--hover-shadow);
+      }
+
+      /* 影片容器運動風格 */
+      .item-video-container {
+        text-align: center;
+        min-width: 300px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+      }
+
+      .item-video {
+        width: 550px;
+        min-width: 300px;
+        height: 310px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        border: 3px solid transparent;
+        background: var(--primary-gradient);
+        background-clip: padding-box;
+      }
+
+      .item-video:hover {
+        transform: scale(1.02);
+        box-shadow: var(--hover-shadow);
+      }
+
+      /* 標籤容器運動風格 */
+      .tag-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+      }
+
+      /* 運動風格標籤 */
+      .item-tag-1, .item-tag-2, .item-tag-3 {
+        --background: var(--primary-gradient);
+        --color: white;
+        font-weight: 600;
+        font-size: 0.8em;
+        padding: 8px 16px;
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        text-shadow: var(--text-shadow);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .item-tag-1::before, .item-tag-2::before, .item-tag-3::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s;
+      }
+
+      .item-tag-1:hover, .item-tag-2:hover, .item-tag-3:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .item-tag-1:hover::before, .item-tag-2:hover::before, .item-tag-3:hover::before {
+        left: 100%;
+      }
+
+      .item-tag-2 {
+        --background: var(--secondary-gradient);
+      }
+
+      .item-tag-3 {
+        --background: var(--success-gradient);
+      }
+
+      /* 響應式設計 - 桌面大螢幕 */
+      @media (min-width: 1201px) {
+        .media-container {
+          justify-content: center;
+          gap: 20px;
+          align-items: flex-start;
+        }
+        
+        .item-image-container {
+          flex: 0 0 550px;
+        }
+        
+        .item-video-container {
+          flex: 0 0 550px;
+        }
+        
+        .item-image {
+          width: 550px;
+          height: 310px;
+        }
+        
+        .item-video {
+          width: 550px;
+          height: 310px;
+        }
+      }
+
+      /* 響應式設計 - 中等螢幕 (平板) */
+      @media (max-width: 1200px) and (min-width: 769px) {
+        .media-container {
+          justify-content: center;
+          gap: 16px;
+          align-items: flex-start;
+        }
+        
+        .item-image-container {
+          flex: 0 0 400px;
+        }
+        
+        .item-video-container {
+          flex: 0 0 400px;
+        }
+        
+        .item-image {
+          width: 400px;
+          height: 225px;
+          min-width: auto;
+        }
+        
+        .item-video {
+          width: 400px;
+          height: 225px;
+          min-width: auto;
+        }
+      }
+
+      /* 響應式設計 - 大型手機 (Galaxy Note, iPhone 12 Pro Max: 412-428px) */
+      @media (max-width: 768px) and (min-width: 415px) {
+        .media-container {
+          flex-direction: column;
+          gap: 12px;
+          align-items: center;
+        }
+        
+        .item-content {
+          padding: 16px;
+        }
+        
+        .item-pose {
+          font-size: 1.2em;
+        }
+        
+        .item-image-container, .item-video-container {
+          min-width: auto;
+          width: 100%;
+          max-width: 380px;
+        }
+        
+        .item-image {
+          width: 100%;
+          max-width: 380px;
+          height: 214px;
+          min-width: auto;
+        }
+        
+        .item-video {
+          width: 100%;
+          max-width: 380px;
+          height: 214px;
+          min-width: auto;
+        }
+      }
+
+      /* 響應式設計 - 中型手機 (iPhone 6/7/8, Galaxy S5: 360-375px) */
+      @media (max-width: 414px) and (min-width: 361px) {
+        .media-container {
+          flex-direction: column;
+          gap: 10px;
+          align-items: center;
+        }
+        
+        .item-content {
+          padding: 14px;
+        }
+        
+        .item-pose {
+          font-size: 1.1em;
+        }
+        
+        .item-image-container, .item-video-container {
+          min-width: auto;
+          width: 100%;
+          max-width: 340px;
+        }
+        
+        .item-image {
+          width: 100%;
+          max-width: 340px;
+          height: 191px;
+          min-width: auto;
+        }
+        
+        .item-video {
+          width: 100%;
+          max-width: 340px;
+          height: 191px;
+          min-width: auto;
+        }
+      }
+
+      /* 響應式設計 - 小型手機 (iPhone 5: 320px) */
+      @media (max-width: 360px) {
+        .media-container {
+          flex-direction: column;
+          gap: 8px;
+          align-items: center;
+        }
+        
+        .item-content {
+          padding: 12px;
+        }
+        
+        .item-pose {
+          font-size: 1em;
+        }
+        
+        .item-image-container, .item-video-container {
+          min-width: auto;
+          width: 100%;
+          max-width: 300px;
+        }
+        
+        .item-image {
+          width: 100%;
+          max-width: 300px;
+          height: 169px;
+          min-width: auto;
+        }
+        
+        .item-video {
+          width: 100%;
+          max-width: 300px;
+          height: 169px;
+          min-width: auto;
+        }
+      }
+
+      /* 動畫效果 */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .list-item {
+        animation: fadeInUp 0.6s ease forwards;
+      }
+
+      /* 滾動條美化 */
+      ion-content::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ion-content::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+      }
+
+      ion-content::-webkit-scrollbar-thumb {
+        background: var(--primary-gradient);
+        border-radius: 4px;
+      }
+
+      ion-content::-webkit-scrollbar-thumb:hover {
+        background: var(--secondary-gradient);
+      }
+    </style>
+  </head>
+  <body>
+    <ion-app>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>主題清單</ion-title>
+        </ion-toolbar>
+        <ion-searchbar placeholder="搜尋..."></ion-searchbar>
+        <ion-item>
+          <ion-select label="分類" interface="popover">
+            <ion-select-option value="">全部</ion-select-option>
+            <!-- 根據主題加入分類選項 -->
+          </ion-select>
+        </ion-item>
+      </ion-header>
+
+      <ion-content>
+      
+        <ion-list>
+          <!-- 清單項目範本 -->
+          <ion-item class="list-item">
+            <div class="item-content">
+              <div class="item-pose">Pose</div>
+              <div class="item-level">Level</div>
+              <div class="item-benefits">Benefits</div>
+              <div class="item-keys">Keys</div>
+              <div class="item-cautions">Cautions</div>
+              <div class="media-container">
+                <div class="item-image-container">
+                  <img class="item-image" src="" alt="Yoga Pose" style="width: 100%; max-width: 300px; height: auto; border-radius: 8px; margin-top: 10px;">
+                </div>
+                <div class="item-video-container">
+                  <iframe class="item-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+              </div>
+              <div class="tag-container">
+                <ion-chip size="small" class="item-tag-1">標籤1</ion-chip>
+                <ion-chip size="small" class="item-tag-2">標籤2</ion-chip>
+                <ion-chip size="small" class="item-tag-3">標籤3</ion-chip>
+                <!-- 標籤 -->
+              </div>
+            </div>
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </ion-app>
+    <script type="module">
+      import { items } from './post.js';
+
+      const searchbar = document.querySelector('ion-searchbar')
+      const list = document.querySelector('ion-list')
+      const template = document.querySelector('.list-item')
+      const categorySelect = document.querySelector('ion-select')
+
+      // 初始化分類選項
+      function initializeCategoryOptions() {
+        // 收集所有唯一的分類
+        const categories = [...new Set(items.map(item => item.category))]
+        
+        // 清空現有選項（保留"全部"選項）
+        const allOption = categorySelect.querySelector('ion-select-option[value=""]')
+        categorySelect.innerHTML = ''
+        categorySelect.appendChild(allOption)
+        
+        // 添加分類選項
+        categories.forEach(category => {
+          const option = document.createElement('ion-select-option')
+          option.value = category
+          option.textContent = category
+          categorySelect.appendChild(option)
+        })
+      }
+
+      // 更新清單顯示
+      function updateList() {
+        const templateClone = template.cloneNode(true)
+        list.innerHTML = ''
+
+        // 根據搜尋和過濾條件更新清單
+        for (let item of items) {
+          // 搜尋條件
+          const searchMatch = !searchbar.value || 
+             item.pose.toLowerCase().includes(searchbar.value.toLowerCase()) ||
+             item.level.toLowerCase().includes(searchbar.value.toLowerCase()) ||
+             item.benefits.toLowerCase().includes(searchbar.value.toLowerCase()) ||
+             item.keys.toLowerCase().includes(searchbar.value.toLowerCase()) ||
+             item.category.toLowerCase().includes(searchbar.value.toLowerCase()) ||
+             (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchbar.value.toLowerCase())))
+          
+          // 分類條件
+          const categoryMatch = !categorySelect.value || item.category === categorySelect.value
+          
+          // 同時滿足搜尋和分類條件才顯示
+          if (searchMatch && categoryMatch) {
+           let node = templateClone.cloneNode(true)
+           node.querySelector('.item-pose').textContent = item.pose
+           node.querySelector('.item-level').textContent = item.level
+           node.querySelector('.item-benefits').textContent = item.benefits
+           node.querySelector('.item-keys').textContent = item.keys
+           node.querySelector('.item-cautions').textContent = item.cautions
+           
+           // 設定圖片
+           const imageElement = node.querySelector('.item-image')
+           if (item.imageUrl) {
+             imageElement.src = item.imageUrl
+             imageElement.alt = item.pose
+             imageElement.style.display = 'block'
+           } else {
+             imageElement.style.display = 'none'
+           }
+           
+           // 設定影片
+           const videoElement = node.querySelector('.item-video')
+           const videoContainer = node.querySelector('.item-video-container')
+           if (item.videoUrl && item.videoUrl.includes('youtube.com/watch?v=')) {
+             // 轉換 YouTube URL 為 embed 格式
+             const videoId = item.videoUrl.split('v=')[1].split('&')[0]
+             const embedUrl = `https://www.youtube.com/embed/${videoId}`
+             videoElement.src = embedUrl
+             videoContainer.style.display = 'block'
+           } else if (item.videoUrl && item.videoUrl !== 'videos/.mp4') {
+             videoElement.src = item.videoUrl
+             videoContainer.style.display = 'block'
+           } else {
+             videoContainer.style.display = 'none'
+           }
+           
+           // 設定 3 個標籤 chips
+           if (item.tags && item.tags.length > 0) {
+             // 設定第 1 個標籤
+             const tag1 = node.querySelector('.item-tag-1')
+             tag1.textContent = item.tags[0] || ''
+             tag1.style.display = item.tags[0] ? 'inline-block' : 'none'
+             if (item.tags[0]) {
+               tag1.style.cursor = 'pointer'
+               tag1.addEventListener('click', () => {
+                 console.log('點擊標籤:', item.tags[0])
+                 searchbar.value = item.tags[0]
+                 searchbar.dispatchEvent(new Event('ionInput'))
+                 updateList()
+               })
+             }
+             
+             // 設定第 2 個標籤
+             const tag2 = node.querySelector('.item-tag-2')
+             tag2.textContent = item.tags[1] || ''
+             tag2.style.display = item.tags[1] ? 'inline-block' : 'none'
+             if (item.tags[1]) {
+               tag2.style.cursor = 'pointer'
+               tag2.addEventListener('click', () => {
+                 console.log('點擊標籤:', item.tags[1])
+                 searchbar.value = item.tags[1]
+                 searchbar.dispatchEvent(new Event('ionInput'))
+                 updateList()
+               })
+             }
+             
+             // 設定第 3 個標籤
+             const tag3 = node.querySelector('.item-tag-3')
+             tag3.textContent = item.tags[2] || ''
+             tag3.style.display = item.tags[2] ? 'inline-block' : 'none'
+             if (item.tags[2]) {
+               tag3.style.cursor = 'pointer'
+               tag3.addEventListener('click', () => {
+                 console.log('點擊標籤:', item.tags[2])
+                 searchbar.value = item.tags[2]
+                 searchbar.dispatchEvent(new Event('ionInput'))
+                 updateList()
+               })
+             }
+           } else {
+             // 如果沒有標籤，隱藏所有標籤 chips
+             node.querySelector('.item-tag-1').style.display = 'none'
+             node.querySelector('.item-tag-2').style.display = 'none'
+             node.querySelector('.item-tag-3').style.display = 'none'
+           }
+           
+           list.appendChild(node)
+          }
+        }
+      }
+
+      // 搜尋功能
+      searchbar.addEventListener('ionInput', event => {
+         console.log(searchbar.value)
+         updateList()
+      })
+
+      // 實作分類過濾邏輯
+       categorySelect.addEventListener('ionChange', event => {
+         console.log(categorySelect.value)
+         updateList()
+         })
+
+      // 初始化顯示
+      initializeCategoryOptions()  // 先初始化分類選項
+      updateList()                 // 然後顯示清單
+    </script>
+  </body>
+</html>

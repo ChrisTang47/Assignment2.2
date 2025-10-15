@@ -1,0 +1,231 @@
+ const items = [
+  {
+    pose: 'Pose : Mountain Pose', 
+    level: 'Level : Beginner',
+    benefits: 'Benefits : Improves the posture and the body awareness. Strengthens the core muscles. Tadasana is the foundation of most of the standing asana.Main: Calmness, Centering, Grounding.', 
+    keys:
+      'Keys : Feet press, Legs engaged, Elongates the spine, top of the head toward the ceiling, Shoulders down and relaxed, palm facing forward. Breath lengthen.', 
+    cautions: "Cautions : Falls are not uncommon when trying to practice Tadasana with eyes closed.",
+    category: 'Standing', 
+    tags: ['beginner', 'standing', 'posture'],
+    imageUrl: './images/MountainPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=E-iyEfoDqiY', 
+  },
+{
+    pose: 'Pose : Warrior 1', 
+    level: 'Level : Beginner',
+    benefits: 'Benefits : Improve the rotation of the hips and mobilize the spine. This pose offers a full body stretch and strengthening and improves breathing and circulation.', 
+    keys:
+      'Keys : Front knee above heel, Hips facing forward, tail bone tucked in, Legs and core engaged, Chest open and lifted up. Back foot firmly press.', 
+    cautions: 'Cautions : Knee or hip injuries, blood pressure or difficulty to balance.',
+    category: 'Standing', 
+    tags: ['beginner', 'standing', 'hip-opening'],
+    imageUrl: './images/Warrior1.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=4Tbp3NydcbQ', 
+  },
+  {
+    pose: 'Pose : Warrior 2', 
+    level: 'Level : Beginner',
+    benefits: 'Benefits : Strengthens the legs, shoulders, back and chest muscles. Open the rib cage, invigorate the nervous system, improve hips joint movement. This asana provides a great feeling of grounding and confidence.', 
+    keys:
+      'Keys : Front knee above the heel, hips facing to the side, tail bone tuck in, arms in a line, shoulders above the hips. ', 
+    cautions: 'Cautions : Sacroiliac injury or inflammation. Ankle, knee or hips injuries.',
+    category: 'Standing', 
+    tags: ['beginner', 'standing', 'strengthening'],
+    imageUrl: './images/Warrior2.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=7Xl-TNyOJec', 
+  },
+  {
+    pose: 'Pose : Tree Pose', 
+    level: 'Level : Beginner', 
+    benefits: 'Benefits : Center yourself and build focus. Calm the mind, improve balance and strengthens the supporting leg.',
+    keys:
+      'Keys : Floor foot and leg engaged, Hips facing forward, Foot pressed onto inner the thigh, Spine elongated. Never press the sole of the feet onto the knee, lower down to the calf if you cannot reach the inner thigh. ', 
+    cautions: 'Cautions : Any ankle, knee or hips injuries.',
+    category: 'Standing', 
+    tags: ['beginner', 'standing', 'balance'],
+    imageUrl: './images/TreePose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=yVE4XXFFO70',
+  },
+  {
+    pose: 'Pose : Child Pose', 
+    level: 'Level : Beginner', 
+    benefits: 'Benefits : Massages the abdominal internal organs, gently stretches the spine hips and thighs, calms the nervous system and relieves tiredness.', 
+    keys:
+      'Keys : Big toes together, sitting on the hills, knees open, spine round, belly between thighs, forehead on the floor, shoulder relaxed.', 
+    cautions: 'Cautions : Hip, ankle or knee injury, do not strain the neck.',
+    category: 'Restorative', 
+    tags: ['beginner', 'restorative', 'relaxation'],
+    imageUrl: './images/ChildPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=kH12QrSGedM', 
+  },
+  {
+    pose: 'Pose : Table Pose', 
+    level: 'Level : Beginner', 
+    benefits: 'Benefits : Gently stretches and warms up all the muscles and joints of the body. Improves the posture and the body awareness. Balances, prepares the body and mind. Relieve the tensions.', 
+    keys:
+      'Keys : Knees and shoulders directly above ankles and wrists respectively, knees, hips and shoulders aligned. Spine elongated.', 
+    cautions: 'Cautions : Wrist or shoulder injuries.',
+    category: 'Preparatory', 
+    tags: ['beginner', 'preparatory', 'warm-up'],
+    imageUrl: './images/TablePose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=PGAntbDQ6Xg', 
+  }, {
+    pose: 'Pose : Lotus Pose', 
+    level: 'Level : Intermediate', 
+    benefits: 'Benefits : Great for meditation and Pranayama practice. Much more stable than its counterparts. This asana allows the entire body to remain steady during a long period of time.', 
+    keys:
+      'Keys : Feet on the top of thighs, Spine elongate, mind the knees, and relax the shoulders. Top of the head toward the ceiling and chin slightly down. A great mobility in the hips are required before mastering the pose. ', 
+    cautions: 'Cautions : Any pain or injuries in the knees, ankles or calves.',
+    category: 'Seated', 
+    tags: ['intermediate', 'seated', 'meditation'],
+    imageUrl: './images/LotusPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=hqRq5uoSako', 
+  }, {
+    pose: 'Pose : Boat Pose', 
+    level: 'Level : Intermediate', 
+    benefits: 'Benefits : Boat Pose creates core, back, hip flexor strengthening, hamstring stretching and tones abdominal organs. Also improve balance and confidence.', 
+    keys:
+      'Keys : Core engaged, inner thigh squeezed, shoulder out, chest open, back straight, crown toward the ceiling. Mind the neck and the lower back. ', 
+    cautions: 'Cautions : Mind the neck and the lower back.',
+    category: 'Seated', 
+    tags: ['intermediate', 'seated', 'core-strengthening'],
+    imageUrl: './images/BoatPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=gWEey6tp7-c', 
+  }, {
+    pose: 'Pose : Camel Pose', 
+    level: 'Level : Intermediate', 
+    benefits: 'Benefits : Improves breathing and releases tension in the anterior body from the knee to the chin. Improves the digestive and reproductive system.', 
+    keys:
+      'Keys : Hips directly above knees, Shoulders away from the ears, Chest open, Mind the lower back.', 
+    cautions: 'Cautions : Spine, shoulders or neck injuries. Blood pressure.',
+    category: 'Back-bend', 
+    tags: ['intermediate', 'back-bend', 'chest-opening'],
+    imageUrl: './images/CamelPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=gTWeERiAvhY', 
+  }, {
+    pose: 'Pose : Shoulder Stand', 
+    level: 'Level : Intermediate', 
+    benefits: 'Benefits : Improves body awareness, blood circulation to the brain and helps realigning the vertebras. Tranquilize the mind and relieve stress. Stimulates the thyroid gland. Generally balance nervous, reproductive, endocrine, respiratory, circulatory and digestive systems. ', 
+    keys:
+      'Keys : Chin on the throat, Lift the legs up to lighten the pose, Pelvis above shoulder heels above hips, elbows in line with the shoulders. Mind the neck.', 
+    cautions: 'Cautions : Neck, shoulder injuries, glaucoma, high blood pressure.',
+    category: 'Inversion', 
+    tags: ['intermediate', 'inversion', 'shoulder-strengthening'],
+    imageUrl: './images/ShoulderStand.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=-JecKm9OiOQ', 
+  }, {
+    pose: 'Pose : Supported Headstand Pose', 
+    level: 'Level : Intermediate', 
+    benefits: 'Benefits : Provides strength to the entire body. Relieves all body organs. Increases the blood circulation and tone the Pituitary gland. Improves the balance and awareness.', 
+    keys:
+      'Keys : Heels, hips and shoulders should be vertically aligned, the tailbone tucked in. Push the floor away. Use the lower arms and shoulders to reduce the weight on the neck.', 
+    cautions: 'Cautions : Neck and back injuries, blood pressure, headaches.',
+    category: 'Inversion', 
+    tags: ['intermediate', 'inversion', 'balance'],
+    imageUrl: './images/SupportedHeadstandPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=iRRoqdw-KIY', 
+  }, {
+    pose: 'Pose : Cobra Pose', 
+    level: 'Level : Intermediate', 
+    benefits: 'Benefits : Keeps the spine supple and healthy. Strengthen the back and open the chest encouraging a deeper breath. Promote digestion.', 
+    keys:
+      'Keys : Legs active, Chest forward then up, Beware of back compression, Hips on the floor, shoulders back and down. Allow to slightly bend the elbows. ', 
+    cautions: 'Cautions : Neck, shoulders or spine injuries.',
+    category: 'Back-bend', 
+    tags: ['intermediate', 'back-bend', 'spine-health'],
+    imageUrl: './images/CobraPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=XU0wJ0OTopU', 
+  }, {
+    pose: 'Pose : Headstand Pose', 
+    level: 'Level : Advanced', 
+    benefits: 'Benefits : Strengthen the arms, shoulders, back muscles, legs. Stimulate heart and diaphragm. Build awareness, decompress the spine, stimulate the crown chakra.', 
+    keys:
+      'Keys : Same cues as Salamba Sirsasana, in addition, use the palms here to push the floor away and lighten the weight on the cervical. Keep the elbows above the wrists. Mind the cervical. Use the wall if needed till you find enough strength and balance. Preferably learn the pose with a competent teacher. ', 
+    cautions: 'Caution : Neck and back injuries, blood pressure, headaches.',
+    category: 'Inversion', 
+    tags: ['advanced', 'inversion', 'full-body-strengthening'],
+    imageUrl: './images/HeadstandPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=V1HbXt5ZRlg', 
+  }, {
+    pose: 'Pose : Lotus Peacock Pose', 
+    level: 'Level : Advanced', 
+    benefits: 'Benefits : Strengthens arm, shoulder and back muscles. Improve balance, focus, digestion and relieve constipation.', 
+    keys:
+      'Keys : Finger pointing backward, elbows pressing on the lower abdomen, shoulder, hip and knees on one line, gaze forward. ', 
+    cautions: 'Cautions : Ankle, knees, hips injuries. Avoid during pregnancy or with high blood pressure.',
+    category: 'Arm-balance',
+    tags: ['advanced', 'arm-balance', 'core-strengthening'],
+    imageUrl: './images/LotusPeacockPose.jpg',
+    videoUrl: 'https://www.youtube.com/watch?v=LnuGwWOnErk', 
+  }, {
+    pose: 'Pose : Wheel Pose', 
+    level: 'Level : Advanced', 
+    benefits: 'Benefits : Develops and tones all the body muscles. Stretches and lengthens the spine. Beneficial for depression. Improves confidence and boosts energy.', 
+    keys:
+      'Keys : The pubis should be lifted upward, the palms and feet firmly pressing and pushing the floor away, and the chest open. ', 
+    cautions: 'Cautions : Wrist, elbows, shoulders or spine injury.',
+    category: 'Back-bend', 
+    tags: ['advanced', 'back-bend', 'full-body-strengthening'],
+    imageUrl: './images/WheelPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=iLCVtWjD2a8', 
+  }, {
+    pose: 'Pose : King Pigeon Pose', 
+    level: 'Level : Advanced', 
+    benefits: 'Benefits : Brings body awareness, opens the chest and improves the posture. ', 
+    keys:
+      'Keys : Hips on the floor at the same level, Mind the front knee and lower back, Shoulders and chest opened, back extention. ', 
+    cautions: 'Cautions : Neck, back, hips, knees or ankle injuries. Shoulder dislocations.',
+    category: 'Back-bend', 
+    tags: ['advanced', 'back-bend', 'hip-opening'],
+    imageUrl: './images/KingPigeonPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=i4TY6Oui-XI', 
+  }, {
+    pose: 'Pose : Locked Lotus Pose', 
+    level: 'Level : Advanced', 
+    benefits: 'Benefits : Relax the nervous system. Stimulate the digestive process. Alleviates shoulder, arm, and back pain. Massages the abdominal organs. Stretch the back muscles.', 
+    keys:
+      'Keys : Knees and buttocks on the ground, inner thighs engage, spine long till the top the crown, scapula retraction. ', 
+    cautions: 'Cautions : Hips, knee, ankle and shoulder injury, do not strain the neck.',
+    category: 'Forward-bend',
+    tags: ['advanced', 'forward-bend', 'hip-opening'], 
+    imageUrl: './images/LockedLotusPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=zjcmB3swEpA', 
+  }, {
+    pose: 'Pose : Lotus Shoulderstand Pose', 
+    level: 'Level : Advanced', 
+    benefits: 'Benefits : Stretches the spine, neck and shoulders. Core and Legs Strengthening. Metabolism Regulating. Balance improvement. Lower abdomen internal organ massage.', 
+    keys:
+      'Keys : Lift up from the shoulders to the tip of the tailbone to lighten the pose and the chest compression. Pelvis above shoulder heels above hips. Back of the neck long. ', 
+    cautions: 'Cautions : High blood pressure, ankle, hip, knee, shoulders or neck injuries.',
+    category: 'Inversion', 
+    tags: ['advanced', 'inversion', 'full-body-strengthening'],
+    imageUrl: './images/LotusShoulderstandPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=ObQzDIhiUp8', 
+  }, {
+    pose: 'Pose : Monkey pose', 
+    level: 'Level : Advanced', 
+    benefits: 'Benefits : Improves balance, stability and flexibility of the hips and pelvic girdle. Tones, stretches and strengthens the leg muscles. Enhance the feeling of grounding and balance the nervous system.', 
+    keys:
+      'Keys : The shoulders and neck should be relaxed, and the body weight centered.', 
+    cautions: 'Cautions : Injury of the tailbone, hips, pelvis, knee or ankle. Pregnancy.',
+    category: 'Seated', 
+    tags: ['advanced', 'seated', 'hip-opening'],
+    imageUrl: './images/MonkeyPose.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=ljLOIMOpf3c', 
+  }, {
+    pose: 'Pose : Half Bound Lotus Standing Forward Bend', 
+    level: 'Level : Advanced', 
+    benefits: 'Benefits : Stimulate digestions, improves blood circulation, stretches calves, hamstrings and back, ankle and hip flexibility. Improve the balance.', 
+    keys:
+      'Keys : Bottom leg straight, hips at the same level, long spine, body weight forward, palms press.', 
+    cautions: 'Cautions : Blood pressure, knee and hip injuries.',
+    category: 'Forward-bend', 
+    tags: ['advanced', 'forward-bend', 'balance'],
+    imageUrl: './images/HalfBoundLotusStandingForwardBend.jpg', 
+    videoUrl: 'https://www.youtube.com/watch?v=FucFRuQtG6M', 
+  },
+ ]
+
+// 匯出 items 陣列供其他檔案使用
+export { items };
