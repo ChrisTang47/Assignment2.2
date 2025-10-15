@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>主題清單</title>
+    <title>瑜伽動作清單</title>
     <!-- Ionic CDN -->
     <script
       type="module"
@@ -45,7 +45,7 @@
         --background: transparent;
         --color: white;
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
       }
 
@@ -54,11 +54,14 @@
         font-size: 1.4em;
         text-shadow: var(--text-shadow);
         letter-spacing: 0.5px;
-        text-align: center;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+      }
+
+      /* 認證按鈕 */
+      #auth-btn {
+        --color: white;
+        --background: rgba(255, 255, 255, 0.2);
+        --border-radius: 20px;
+        margin: 0 8px;
       }
 
       /* 搜索欄運動風格 */
@@ -71,16 +74,6 @@
         overflow: hidden;
       }
 
-      /* 分類選擇器 */
-      ion-item {
-        --background: rgba(255, 255, 255, 0.9);
-        --border-radius: 20px;
-        margin: 0 16px 8px 16px;
-        border-radius: 20px;
-        box-shadow: var(--card-shadow);
-        overflow: hidden;
-      }
-
       /* 內容區域 */
       ion-content {
         --background: transparent;
@@ -89,15 +82,289 @@
         --padding-top: 16px;
       }
 
-      /* 列表項目運動卡片風格 */
-      .list-item {
+      /* 瑜伽動作卡片風格 */
+      .pose-card {
         --background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
         --border-radius: var(--border-radius);
-        --box-shadow: var(--card-shadow);
+        box-shadow: var(--card-shadow);
         margin-bottom: 20px;
         border-radius: var(--border-radius);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
+        position: relative;
+      }
+
+      .pose-card:hover {
+        box-shadow: var(--hover-shadow);
+        transform: translateY(-4px);
+      }
+
+      /* 圖片容器 */
+      .card-image-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+      }
+
+      .card-image-container img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+
+      .pose-card:hover .card-image-container img {
+        transform: scale(1.05);
+      }
+
+      /* 收藏按鈕 */
+      .bookmark-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        --background: rgba(255, 255, 255, 0.9);
+        --color: #666;
+        --border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+      }
+
+      .bookmark-btn.bookmarked {
+        --background: var(--secondary-gradient);
+        --color: white;
+      }
+
+      .bookmark-btn:hover {
+        transform: scale(1.1);
+      }
+
+      /* 卡片內容 */
+      ion-card-header {
+        background: var(--primary-gradient);
+        color: white;
+        text-align: center;
+      }
+
+      ion-card-title {
+        font-size: 1.3em;
+        font-weight: bold;
+        text-shadow: var(--text-shadow);
+      }
+
+      ion-card-subtitle {
+        font-size: 1em;
+        opacity: 0.9;
+      }
+
+      ion-card-content {
+        padding: 20px;
+        line-height: 1.6;
+      }
+
+      .description {
+        margin-bottom: 16px;
+        color: #444;
+        font-size: 1em;
+      }
+
+      /* 載入狀態 */
+      .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        text-align: center;
+      }
+
+      .loading-container ion-spinner {
+        margin-bottom: 16px;
+        --color: var(--primary-gradient);
+      }
+
+      /* 錯誤狀態 */
+      .error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        text-align: center;
+      }
+
+      .error-icon {
+        font-size: 4em;
+        color: #f56565;
+        margin-bottom: 16px;
+      }
+
+      .error-container h3 {
+        color: #f56565;
+        margin-bottom: 8px;
+      }
+
+      .error-container p {
+        color: #666;
+        margin-bottom: 16px;
+      }
+
+      /* 載入更多按鈕 */
+      #load-more-btn {
+        --background: var(--success-gradient);
+        --color: white;
+        --border-radius: 25px;
+        margin: 20px auto;
+        display: block;
+        width: 200px;
+        height: 50px;
+        font-weight: bold;
+        text-transform: none;
+        letter-spacing: 0.5px;
+      }
+
+      /* 認證模態框樣式 */
+      .auth-modal ion-header {
+        background: var(--primary-gradient);
+      }
+
+      .auth-modal ion-title {
+        color: white;
+        text-align: center;
+      }
+
+      .auth-form {
+        padding: 20px;
+      }
+
+      .auth-form ion-item {
+        margin-bottom: 16px;
+        --border-radius: 12px;
+        border-radius: 12px;
+      }
+
+      .auth-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .auth-buttons ion-button {
+        flex: 1;
+        --border-radius: 25px;
+        height: 50px;
+        font-weight: bold;
+      }
+
+      .auth-switch {
+        text-align: center;
+        margin-top: 16px;
+      }
+
+      .auth-switch ion-button {
+        --color: var(--ion-color-primary);
+        text-decoration: none;
+      }
+
+      /* 響應式設計 */
+      @media (max-width: 768px) {
+        ion-toolbar {
+          flex-direction: column;
+          padding: 8px;
+        }
+
+        .auth-buttons {
+          flex-direction: column;
+        }
+
+        .pose-card {
+          margin: 0 8px 16px 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <ion-app>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>瑜伽動作清單</ion-title>
+          <ion-button id="auth-btn" slot="end" fill="clear">
+            <ion-icon slot="start" name="log-in-outline"></ion-icon>
+            登入
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <!-- 瑜伽動作容器 -->
+        <div id="poses-container">
+          <!-- 動作卡片將在這裡動態載入 -->
+        </div>
+
+        <!-- 載入更多按鈕 -->
+        <ion-button id="load-more-btn" fill="solid" style="display: none;">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          載入更多
+        </ion-button>
+      </ion-content>
+
+      <!-- 認證模態框 -->
+      <ion-modal id="auth-modal" class="auth-modal">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title id="auth-modal-title">登入</ion-title>
+            <ion-button slot="end" fill="clear" onclick="document.getElementById('auth-modal').dismiss()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content>
+          <form class="auth-form" id="auth-form">
+            <ion-item>
+              <ion-input
+                id="username"
+                label="使用者名稱"
+                label-placement="floating"
+                type="text"
+                required
+              ></ion-input>
+            </ion-item>
+            
+            <ion-item>
+              <ion-input
+                id="password"
+                label="密碼"
+                label-placement="floating"
+                type="password"
+                required
+              ></ion-input>
+            </ion-item>
+
+            <div class="auth-buttons">
+              <ion-button id="auth-submit-btn" type="submit" fill="solid">
+                登入
+              </ion-button>
+              <ion-button type="button" fill="outline" onclick="document.getElementById('auth-modal').dismiss()">
+                取消
+              </ion-button>
+            </div>
+
+            <div class="auth-switch">
+              <p id="auth-switch-text">還沒有帳號？</p>
+              <ion-button id="auth-switch-btn" fill="clear">
+                立即註冊
+              </ion-button>
+            </div>
+          </form>
+        </ion-content>
+      </ion-modal>
+    </ion-app>
+
+    <!-- 載入 TypeScript 編譯後的 JavaScript -->
+    <script type="module" src="./dist/app.js"></script>
+  </body>
+</html>
         position: relative;
       }
 
