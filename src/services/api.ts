@@ -8,20 +8,24 @@ import {
   QueryParams,
   ApiError
 } from '../types/index.js';
+import { LocalDataAdapter } from './localData.js';
 
 // API 基礎設定
 const BASE_URL = 'https://dae-mobile-assignment.hkit.cc/api';
 const RESOURCE_ENDPOINT = '/yoga-poses';
 
 /**
- * API 服務類別 - 處理所有與後端的通訊
+ * API 服務類別 - 處理所有與後端的通訊，支援本地資料 fallback
  */
 export class ApiService {
   private token: string | null = null;
+  private localDataAdapter: LocalDataAdapter;
+  private useLocalData: boolean = false;
 
   constructor() {
     // 從 localStorage 載入已儲存的 token
     this.token = localStorage.getItem('auth_token');
+    this.localDataAdapter = new LocalDataAdapter();
   }
 
   /**
@@ -71,49 +75,94 @@ export class ApiService {
    * 載入瑜伽動作資料
    */
   async fetchYogaPoses(params: QueryParams = {}): Promise<ApiResponse<YogaPose>> {
-    const queryString = new URLSearchParams();
-    
-    if (params.page) queryString.append('page', params.page.toString());
-    if (params.limit) queryString.append('limit', params.limit.toString());
-    if (params.search) queryString.append('search', params.search);
-    if (params.category) queryString.append('category', params.category);
-    if (params.sort) queryString.append('sort', params.sort);
-    if (params.order) queryString.append('order', params.order);
+    // 如果已經設定使用本地資料，直接使用
+    if (this.useLocalData) {
+      console.log('使用本地資料');
+      return this.localDataAdapter.getYogaPoses(params);
+    }
 
-    const url = `${BASE_URL}${RESOURCE_ENDPOINT}?${queryString}`;
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
+    try {
+      const queryString = new URLSearchParams();
+      
+      if (params.page) queryString.append('page', params.page.toString());
+      if (params.limit) queryString.append('limit', params.limit.toString());
+      if (params.search) queryString.append('search', params.search);
+      if (params.category) queryString.append('category', params.category);
+      if (params.sort) queryString.append('sort', params.sort);
+      if (params.order) queryString.append('order', params.order);
 
-    return this.handleResponse<ApiResponse<YogaPose>>(response);
+      const url = `${BASE_URL}${RESOURCE_ENDPOINT}?${queryString}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      return this.handleResponse<ApiResponse<YogaPose>>(response);
+      
+    } catch (error) {
+      console.warn('API 載入失敗，切換到本地資料:', error);
+      this.useLocalData = true;
+      return this.localDataAdapter.getYogaPoses(params);
+    }
   }
 
   /**
    * 使用者註冊
    */
   async signup(credentials: AuthRequest): Promise<AuthResponse> {
-    const response = await fetch(`${BASE_URL}/auth/signup`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(credentials),
-    });
+    if (this.useLocalData) {
+      // 本地模擬註冊
+      const mockResponse: AuthResponse = {
+        user_id: Date.now(),
+        token: 'mock_token_' + Date.now()
+      };
+      console.log('本地模擬註冊成功');
+      return mockResponse;
+    }
 
-    return this.handleResponse<AuthResponse>(response);
+    try {
+      const response = await fetch(`${BASE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(credentials),
+      });
+
+      return this.handleResponse<AuthResponse>(response);
+    } catch (error) {
+      console.warn('API 註冊失敗，使用本地模擬');
+      this.useLocalData = true;
+      return this.signup(credentials);
+    }
   }
 
   /**
    * 使用者登入
    */
   async login(credentials: AuthRequest): Promise<AuthResponse> {
-    const response = await fetch(`${BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(credentials),
-    });
+    if (this.useLocalData) {
+      // 本地模擬登入
+      const mockResponse: AuthResponse = {
+        user_id: Date.now(),
+        token: 'mock_token_' + Date.now()
+      };
+      console.log('本地模擬登入成功');
+      return mockResponse;
+    }
 
-    return this.handleResponse<AuthResponse>(response);
+    try {
+      const response = await fetch(`${BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(credentials),
+      });
+
+      return this.handleResponse<AuthResponse>(response);
+    } catch (error) {
+      console.warn('API 登入失敗，使用本地模擬');
+      this.useLocalData = true;
+      return this.login(credentials);
+    }
   }
 
   /**
@@ -124,47 +173,116 @@ export class ApiService {
       return { user_id: null };
     }
 
-    const response = await fetch(`${BASE_URL}/auth/check`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
+    if (this.useLocalData) {
+      // 本地模擬檢查
+      return { user_id: this.token.startsWith('mock_token_') ? 12345 : null };
+    }
 
-    return this.handleResponse<{ user_id: number | null }>(response);
+    try {
+      const response = await fetch(`${BASE_URL}/auth/check`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      return this.handleResponse<{ user_id: number | null }>(response);
+    } catch (error) {
+      console.warn('API 檢查認證失敗，使用本地模擬');
+      this.useLocalData = true;
+      return this.checkAuth();
+    }
   }
 
   /**
    * 收藏項目
    */
   async addBookmark(itemId: number): Promise<BookmarkResponse> {
-    const response = await fetch(`${BASE_URL}/bookmarks/${itemId}`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-    });
+    if (this.useLocalData) {
+      // 本地模擬收藏
+      const bookmarks = this.getLocalBookmarks();
+      if (!bookmarks.includes(itemId)) {
+        bookmarks.push(itemId);
+        localStorage.setItem('local_bookmarks', JSON.stringify(bookmarks));
+        return { message: 'newly bookmarked' };
+      }
+      return { message: 'already bookmarked' };
+    }
 
-    return this.handleResponse<BookmarkResponse>(response);
+    try {
+      const response = await fetch(`${BASE_URL}/bookmarks/${itemId}`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+      });
+
+      return this.handleResponse<BookmarkResponse>(response);
+    } catch (error) {
+      console.warn('API 收藏失敗，使用本地模擬');
+      this.useLocalData = true;
+      return this.addBookmark(itemId);
+    }
   }
 
   /**
    * 取消收藏項目
    */
   async removeBookmark(itemId: number): Promise<BookmarkResponse> {
-    const response = await fetch(`${BASE_URL}/bookmarks/${itemId}`, {
-      method: 'DELETE',
-      headers: this.getAuthHeaders(),
-    });
+    if (this.useLocalData) {
+      // 本地模擬取消收藏
+      const bookmarks = this.getLocalBookmarks();
+      const index = bookmarks.indexOf(itemId);
+      if (index > -1) {
+        bookmarks.splice(index, 1);
+        localStorage.setItem('local_bookmarks', JSON.stringify(bookmarks));
+        return { message: 'newly deleted' };
+      }
+      return { message: 'already deleted' };
+    }
 
-    return this.handleResponse<BookmarkResponse>(response);
+    try {
+      const response = await fetch(`${BASE_URL}/bookmarks/${itemId}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders(),
+      });
+
+      return this.handleResponse<BookmarkResponse>(response);
+    } catch (error) {
+      console.warn('API 取消收藏失敗，使用本地模擬');
+      this.useLocalData = true;
+      return this.removeBookmark(itemId);
+    }
   }
 
   /**
    * 取得收藏列表
    */
   async getBookmarks(): Promise<BookmarkListResponse> {
-    const response = await fetch(`${BASE_URL}/bookmarks`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
+    if (this.useLocalData) {
+      // 本地模擬收藏列表
+      return { item_ids: this.getLocalBookmarks() };
+    }
 
-    return this.handleResponse<BookmarkListResponse>(response);
+    try {
+      const response = await fetch(`${BASE_URL}/bookmarks`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      return this.handleResponse<BookmarkListResponse>(response);
+    } catch (error) {
+      console.warn('API 取得收藏列表失敗，使用本地模擬');
+      this.useLocalData = true;
+      return this.getBookmarks();
+    }
+  }
+
+  /**
+   * 取得本地收藏列表
+   */
+  private getLocalBookmarks(): number[] {
+    try {
+      const stored = localStorage.getItem('local_bookmarks');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
   }
 }

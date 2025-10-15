@@ -1,4 +1,4 @@
- const items = [
+export const items = [
   {
     pose: 'Pose : Mountain Pose', 
     level: 'Level : Beginner',
@@ -226,6 +226,3 @@
     videoUrl: 'https://www.youtube.com/watch?v=FucFRuQtG6M', 
   },
  ]
-
-// 匯出 items 陣列供其他檔案使用
-export { items };

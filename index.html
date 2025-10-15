@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>瑜伽動作清單</title>
+    <title>主題清單</title>
     <!-- Ionic CDN -->
     <script
       type="module"
@@ -45,7 +45,7 @@
         --background: transparent;
         --color: white;
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
       }
 
@@ -54,14 +54,11 @@
         font-size: 1.4em;
         text-shadow: var(--text-shadow);
         letter-spacing: 0.5px;
-      }
-
-      /* 認證按鈕 */
-      #auth-btn {
-        --color: white;
-        --background: rgba(255, 255, 255, 0.2);
-        --border-radius: 20px;
-        margin: 0 8px;
+        text-align: center;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
 
       /* 搜索欄運動風格 */
@@ -74,6 +71,16 @@
         overflow: hidden;
       }
 
+      /* 分類選擇器 */
+      ion-item {
+        --background: rgba(255, 255, 255, 0.9);
+        --border-radius: 20px;
+        margin: 0 16px 8px 16px;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+      }
+
       /* 內容區域 */
       ion-content {
         --background: transparent;
@@ -82,320 +89,15 @@
         --padding-top: 16px;
       }
 
-      /* 瑜伽動作卡片風格 */
-      .pose-card {
+      /* 列表項目運動卡片風格 */
+      .list-item {
         --background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
         --border-radius: var(--border-radius);
-        box-shadow: var(--card-shadow);
+        --box-shadow: var(--card-shadow);
         margin-bottom: 20px;
         border-radius: var(--border-radius);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
-        position: relative;
-      }
-
-      .pose-card:hover {
-        box-shadow: var(--hover-shadow);
-        transform: translateY(-4px);
-      }
-
-      /* 圖片容器 */
-      .card-image-container {
-        position: relative;
-        overflow: hidden;
-        border-radius: var(--border-radius) var(--border-radius) 0 0;
-      }
-
-      .card-image-container img {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-      }
-
-      .pose-card:hover .card-image-container img {
-        transform: scale(1.05);
-      }
-
-      /* 收藏按鈕 */
-      .bookmark-btn {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        --background: rgba(255, 255, 255, 0.9);
-        --color: #666;
-        --border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        backdrop-filter: blur(10px);
-        transition: all 0.3s ease;
-      }
-
-      .bookmark-btn.bookmarked {
-        --background: var(--secondary-gradient);
-        --color: white;
-      }
-
-      .bookmark-btn:hover {
-        transform: scale(1.1);
-      }
-
-      /* 卡片內容 */
-      ion-card-header {
-        background: var(--primary-gradient);
-        color: white;
-        text-align: center;
-      }
-
-      ion-card-title {
-        font-size: 1.3em;
-        font-weight: bold;
-        text-shadow: var(--text-shadow);
-      }
-
-      ion-card-subtitle {
-        font-size: 1em;
-        opacity: 0.9;
-      }
-
-      ion-card-content {
-        padding: 20px;
-        line-height: 1.6;
-      }
-
-      .description {
-        margin-bottom: 16px;
-        color: #444;
-        font-size: 1em;
-      }
-
-      /* 載入狀態 */
-      .loading-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px;
-        text-align: center;
-      }
-
-      .loading-container ion-spinner {
-        margin-bottom: 16px;
-        --color: var(--primary-gradient);
-      }
-
-      /* 錯誤狀態 */
-      .error-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px;
-        text-align: center;
-      }
-
-      .error-icon {
-        font-size: 4em;
-        color: #f56565;
-        margin-bottom: 16px;
-      }
-
-      .error-container h3 {
-        color: #f56565;
-        margin-bottom: 8px;
-      }
-
-      .error-container p {
-        color: #666;
-        margin-bottom: 16px;
-      }
-
-      /* 載入更多按鈕 */
-      #load-more-btn {
-        --background: var(--success-gradient);
-        --color: white;
-        --border-radius: 25px;
-        margin: 20px auto;
-        display: block;
-        width: 200px;
-        height: 50px;
-        font-weight: bold;
-        text-transform: none;
-        letter-spacing: 0.5px;
-      }
-
-      /* 認證模態框樣式 */
-      .auth-modal ion-header {
-        background: var(--primary-gradient);
-      }
-
-      .auth-modal ion-title {
-        color: white;
-        text-align: center;
-      }
-
-      .auth-form {
-        padding: 20px;
-      }
-
-      .auth-form ion-item {
-        margin-bottom: 16px;
-        --border-radius: 12px;
-        border-radius: 12px;
-      }
-
-      .auth-buttons {
-        display: flex;
-        gap: 12px;
-        margin-top: 20px;
-      }
-
-      .auth-buttons ion-button {
-        flex: 1;
-        --border-radius: 25px;
-        height: 50px;
-        font-weight: bold;
-      }
-
-      .auth-switch {
-        text-align: center;
-        margin-top: 16px;
-      }
-
-      .auth-switch ion-button {
-        --color: var(--ion-color-primary);
-        text-decoration: none;
-      }
-
-      /* 響應式設計 */
-      @media (max-width: 768px) {
-        ion-toolbar {
-          flex-direction: column;
-          padding: 8px;
-        }
-
-        .auth-buttons {
-          flex-direction: column;
-        }
-
-        .pose-card {
-          margin: 0 8px 16px 8px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <ion-app>
-      <ion-header>
-        <ion-toolbar>
-          <ion-title>瑜伽動作清單</ion-title>
-          <ion-button id="auth-btn" slot="end" fill="clear">
-            <ion-icon slot="start" name="log-in-outline"></ion-icon>
-            登入
-          </ion-button>
-        </ion-toolbar>
-        
-        <!-- 搜尋欄 -->
-        <ion-searchbar 
-          id="search-bar"
-          placeholder="搜尋瑜伽動作..."
-          debounce="500"
-        ></ion-searchbar>
-        
-        <!-- 過濾和排序選項 -->
-        <div style="padding: 8px 16px; display: flex; gap: 8px; flex-wrap: wrap;">
-          <ion-item style="flex: 1; min-width: 150px;">
-            <ion-select id="category-filter" label="分類" interface="popover" placeholder="全部分類">
-              <ion-select-option value="">全部分類</ion-select-option>
-            </ion-select>
-          </ion-item>
-          
-          <ion-item style="flex: 1; min-width: 150px;">
-            <ion-select id="sort-select" label="排序" interface="popover" value="default">
-              <ion-select-option value="default">預設排序</ion-select-option>
-              <ion-select-option value="title-asc">標題 A-Z</ion-select-option>
-              <ion-select-option value="title-desc">標題 Z-A</ion-select-option>
-              <ion-select-option value="category-asc">分類 A-Z</ion-select-option>
-              <ion-select-option value="category-desc">分類 Z-A</ion-select-option>
-            </ion-select>
-          </ion-item>
-          
-          <ion-button id="bookmarks-only-btn" fill="outline" style="height: 40px;">
-            <ion-icon slot="start" name="bookmark-outline"></ion-icon>
-            只看收藏
-          </ion-button>
-        </div>
-      </ion-header>
-
-      <ion-content>
-        <!-- 瑜伽動作容器 -->
-        <div id="poses-container">
-          <!-- 動作卡片將在這裡動態載入 -->
-        </div>
-
-        <!-- 載入更多按鈕 -->
-        <ion-button id="load-more-btn" fill="solid" style="display: none;">
-          <ion-icon slot="start" name="add-outline"></ion-icon>
-          載入更多
-        </ion-button>
-      </ion-content>
-
-      <!-- 認證模態框 -->
-      <ion-modal id="auth-modal" class="auth-modal">
-        <ion-header>
-          <ion-toolbar>
-            <ion-title id="auth-modal-title">登入</ion-title>
-            <ion-button slot="end" fill="clear" onclick="document.getElementById('auth-modal').dismiss()">
-              <ion-icon name="close"></ion-icon>
-            </ion-button>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content>
-          <form class="auth-form" id="auth-form">
-            <ion-item>
-              <ion-input
-                id="username"
-                label="使用者名稱"
-                label-placement="floating"
-                type="text"
-                required
-              ></ion-input>
-            </ion-item>
-            
-            <ion-item>
-              <ion-input
-                id="password"
-                label="密碼"
-                label-placement="floating"
-                type="password"
-                required
-              ></ion-input>
-            </ion-item>
-
-            <div class="auth-buttons">
-              <ion-button id="auth-submit-btn" type="submit" fill="solid">
-                登入
-              </ion-button>
-              <ion-button type="button" fill="outline" onclick="document.getElementById('auth-modal').dismiss()">
-                取消
-              </ion-button>
-            </div>
-
-            <div class="auth-switch">
-              <p id="auth-switch-text">還沒有帳號？</p>
-              <ion-button id="auth-switch-btn" fill="clear">
-                立即註冊
-              </ion-button>
-            </div>
-          </form>
-        </ion-content>
-      </ion-modal>
-    </ion-app>
-
-    <!-- 載入 TypeScript 編譯後的 JavaScript -->
-    <script type="module" src="./dist/app.js"></script>
-  </body>
-</html>
         position: relative;
       }
 
@@ -816,13 +518,65 @@
       ion-content::-webkit-scrollbar-thumb:hover {
         background: var(--secondary-gradient);
       }
+
+      /* Assignment 2.2 認證按鈕樣式 */
+      #auth-btn {
+        --color: white;
+        --background: rgba(255, 255, 255, 0.2);
+        --border-radius: 20px;
+        margin: 0 8px;
+      }
+
+      /* Assignment 2.2 收藏按鈕樣式 */
+      .bookmark-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        --background: rgba(255, 255, 255, 0.9);
+        --color: #666;
+        --border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        z-index: 10;
+      }
+
+      .bookmark-btn.bookmarked {
+        --background: var(--secondary-gradient);
+        --color: white;
+      }
+
+      .bookmark-btn:hover {
+        transform: scale(1.1);
+      }
+
+      /* Assignment 2.2 分頁控制樣式 */
+      #pagination-controls ion-button {
+        --background: var(--primary-gradient);
+        --color: white;
+        --border-radius: 20px;
+        min-width: 100px;
+      }
+
+      #pagination-info {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        margin: 8px 16px;
+        box-shadow: var(--card-shadow);
+      }
     </style>
   </head>
   <body>
     <ion-app>
       <ion-header>
         <ion-toolbar>
-          <ion-title>主題清單</ion-title>
+          <ion-title>瑜伽動作清單</ion-title>
+          <!-- Assignment 2.2 認證按鈕 -->
+          <ion-button id="auth-btn" fill="clear" slot="end">
+            <ion-icon name="person-outline"></ion-icon>
+            登入
+          </ion-button>
         </ion-toolbar>
         <ion-searchbar placeholder="搜尋..."></ion-searchbar>
         <ion-item>
@@ -831,14 +585,31 @@
             <!-- 根據主題加入分類選項 -->
           </ion-select>
         </ion-item>
+        <!-- Assignment 2.2 分頁控制 -->
+        <ion-item>
+          <ion-label>每頁顯示:</ion-label>
+          <ion-select id="limit-select" value="10" slot="end">
+            <ion-select-option value="5">5</ion-select-option>
+            <ion-select-option value="10">10</ion-select-option>
+            <ion-select-option value="20">20</ion-select-option>
+          </ion-select>
+        </ion-item>
       </ion-header>
 
       <ion-content>
+        <!-- Assignment 2.2 分頁顯示 -->
+        <div id="pagination-info" style="text-align: center; padding: 8px; color: #666; font-size: 0.9em;">
+          頁面 1 / 1，共 0 項
+        </div>
       
         <ion-list>
           <!-- 清單項目範本 -->
           <ion-item class="list-item">
             <div class="item-content">
+              <!-- Assignment 2.2 收藏按鈕 -->
+              <ion-button class="bookmark-btn" fill="clear" size="small">
+                <ion-icon name="heart-outline"></ion-icon>
+              </ion-button>
               <div class="item-pose">Pose</div>
               <div class="item-level">Level</div>
               <div class="item-benefits">Benefits</div>
@@ -861,159 +632,464 @@
             </div>
           </ion-item>
         </ion-list>
+        
+        <!-- Assignment 2.2 分頁控制 -->
+        <div id="pagination-controls" style="display: flex; justify-content: center; gap: 8px; padding: 16px;">
+          <ion-button id="prev-btn" fill="outline" disabled>
+            <ion-icon name="chevron-back-outline" slot="start"></ion-icon>
+            上一頁
+          </ion-button>
+          <ion-button id="next-btn" fill="outline">
+            下一頁
+            <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+          </ion-button>
+        </div>
       </ion-content>
     </ion-app>
+
+    <!-- Assignment 2.2 認證模態框 -->
+    <ion-modal id="auth-modal">
+      <ion-header>
+        <ion-toolbar>
+          <ion-title id="auth-modal-title">登入</ion-title>
+          <ion-button slot="end" fill="clear" onclick="closeAuthModal()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content style="padding: 20px;">
+        <form id="auth-form">
+          <ion-item>
+            <ion-label position="floating">用戶名</ion-label>
+            <ion-input id="username" type="text" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">密碼</ion-label>
+            <ion-input id="password" type="password" required></ion-input>
+          </ion-item>
+          <ion-button type="submit" expand="block" style="margin-top: 20px;">
+            <span id="auth-submit-text">登入</span>
+          </ion-button>
+          <ion-button 
+            type="button" 
+            fill="clear" 
+            expand="block" 
+            onclick="switchAuthMode()"
+            style="margin-top: 10px;"
+          >
+            <span id="auth-switch-text">還沒有帳號？註冊</span>
+          </ion-button>
+        </form>
+      </ion-content>
+    </ion-modal>
+
     <script type="module">
+      // Assignment 2.1 + Assignment 2.2 整合功能
       import { items } from './post.js';
 
-      const searchbar = document.querySelector('ion-searchbar')
-      const list = document.querySelector('ion-list')
-      const template = document.querySelector('.list-item')
-      const categorySelect = document.querySelector('ion-select')
+      // Assignment 2.2 變數
+      let currentUser = null;
+      let currentPage = 1;
+      let itemsPerPage = 10;
+      let allItems = [];
+      let filteredItems = [];
+      let bookmarks = [];
+      let isLoginMode = true;
 
-      // 初始化分類選項
-      function initializeCategoryOptions() {
-        // 收集所有唯一的分類
-        const categories = [...new Set(items.map(item => item.category))]
+      // DOM 元素
+      const searchbar = document.querySelector('ion-searchbar');
+      const list = document.querySelector('ion-list');
+      const template = document.querySelector('.list-item');
+      const categorySelect = document.querySelector('ion-select');
+      const limitSelect = document.getElementById('limit-select');
+      const paginationInfo = document.getElementById('pagination-info');
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+      const authBtn = document.getElementById('auth-btn');
+      const authModal = document.getElementById('auth-modal');
+
+      // 初始化應用
+      async function initializeApp() {
+        // 檢查登入狀態
+        await checkAuthStatus();
         
-        // 清空現有選項（保留"全部"選項）
-        const allOption = categorySelect.querySelector('ion-select-option[value=""]')
-        categorySelect.innerHTML = ''
-        categorySelect.appendChild(allOption)
+        // 設置事件監聽器
+        setupEventListeners();
         
-        // 添加分類選項
-        categories.forEach(category => {
-          const option = document.createElement('ion-select-option')
-          option.value = category
-          option.textContent = category
-          categorySelect.appendChild(option)
-        })
+        // 初始化數據
+        await initializeData();
       }
 
-      // 更新清單顯示
-      function updateList() {
-        const templateClone = template.cloneNode(true)
-        list.innerHTML = ''
-
-        // 根據搜尋和過濾條件更新清單
-        for (let item of items) {
-          // 搜尋條件
-          const searchMatch = !searchbar.value || 
-             item.pose.toLowerCase().includes(searchbar.value.toLowerCase()) ||
-             item.level.toLowerCase().includes(searchbar.value.toLowerCase()) ||
-             item.benefits.toLowerCase().includes(searchbar.value.toLowerCase()) ||
-             item.keys.toLowerCase().includes(searchbar.value.toLowerCase()) ||
-             item.category.toLowerCase().includes(searchbar.value.toLowerCase()) ||
-             (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchbar.value.toLowerCase())))
-          
-          // 分類條件
-          const categoryMatch = !categorySelect.value || item.category === categorySelect.value
-          
-          // 同時滿足搜尋和分類條件才顯示
-          if (searchMatch && categoryMatch) {
-           let node = templateClone.cloneNode(true)
-           node.querySelector('.item-pose').textContent = item.pose
-           node.querySelector('.item-level').textContent = item.level
-           node.querySelector('.item-benefits').textContent = item.benefits
-           node.querySelector('.item-keys').textContent = item.keys
-           node.querySelector('.item-cautions').textContent = item.cautions
-           
-           // 設定圖片
-           const imageElement = node.querySelector('.item-image')
-           if (item.imageUrl) {
-             imageElement.src = item.imageUrl
-             imageElement.alt = item.pose
-             imageElement.style.display = 'block'
-           } else {
-             imageElement.style.display = 'none'
-           }
-           
-           // 設定影片
-           const videoElement = node.querySelector('.item-video')
-           const videoContainer = node.querySelector('.item-video-container')
-           if (item.videoUrl && item.videoUrl.includes('youtube.com/watch?v=')) {
-             // 轉換 YouTube URL 為 embed 格式
-             const videoId = item.videoUrl.split('v=')[1].split('&')[0]
-             const embedUrl = `https://www.youtube.com/embed/${videoId}`
-             videoElement.src = embedUrl
-             videoContainer.style.display = 'block'
-           } else if (item.videoUrl && item.videoUrl !== 'videos/.mp4') {
-             videoElement.src = item.videoUrl
-             videoContainer.style.display = 'block'
-           } else {
-             videoContainer.style.display = 'none'
-           }
-           
-           // 設定 3 個標籤 chips
-           if (item.tags && item.tags.length > 0) {
-             // 設定第 1 個標籤
-             const tag1 = node.querySelector('.item-tag-1')
-             tag1.textContent = item.tags[0] || ''
-             tag1.style.display = item.tags[0] ? 'inline-block' : 'none'
-             if (item.tags[0]) {
-               tag1.style.cursor = 'pointer'
-               tag1.addEventListener('click', () => {
-                 console.log('點擊標籤:', item.tags[0])
-                 searchbar.value = item.tags[0]
-                 searchbar.dispatchEvent(new Event('ionInput'))
-                 updateList()
-               })
-             }
-             
-             // 設定第 2 個標籤
-             const tag2 = node.querySelector('.item-tag-2')
-             tag2.textContent = item.tags[1] || ''
-             tag2.style.display = item.tags[1] ? 'inline-block' : 'none'
-             if (item.tags[1]) {
-               tag2.style.cursor = 'pointer'
-               tag2.addEventListener('click', () => {
-                 console.log('點擊標籤:', item.tags[1])
-                 searchbar.value = item.tags[1]
-                 searchbar.dispatchEvent(new Event('ionInput'))
-                 updateList()
-               })
-             }
-             
-             // 設定第 3 個標籤
-             const tag3 = node.querySelector('.item-tag-3')
-             tag3.textContent = item.tags[2] || ''
-             tag3.style.display = item.tags[2] ? 'inline-block' : 'none'
-             if (item.tags[2]) {
-               tag3.style.cursor = 'pointer'
-               tag3.addEventListener('click', () => {
-                 console.log('點擊標籤:', item.tags[2])
-                 searchbar.value = item.tags[2]
-                 searchbar.dispatchEvent(new Event('ionInput'))
-                 updateList()
-               })
-             }
-           } else {
-             // 如果沒有標籤，隱藏所有標籤 chips
-             node.querySelector('.item-tag-1').style.display = 'none'
-             node.querySelector('.item-tag-2').style.display = 'none'
-             node.querySelector('.item-tag-3').style.display = 'none'
-           }
-           
-           list.appendChild(node)
-          }
+      // Assignment 2.2 認證功能
+      async function checkAuthStatus() {
+        const token = localStorage.getItem('auth_token');
+        const username = localStorage.getItem('username');
+        
+        if (token && username) {
+          currentUser = { username, token };
+          authBtn.innerHTML = `<ion-icon name="person"></ion-icon> ${username}`;
+          await loadBookmarks();
         }
       }
 
-      // 搜尋功能
-      searchbar.addEventListener('ionInput', event => {
-         console.log(searchbar.value)
-         updateList()
-      })
+      async function loadBookmarks() {
+        try {
+          // 嘗試從 API 加載收藏，失敗則使用本地存儲
+          const localBookmarks = localStorage.getItem('local_bookmarks');
+          bookmarks = localBookmarks ? JSON.parse(localBookmarks) : [];
+        } catch (error) {
+          console.log('使用本地收藏數據');
+          bookmarks = [];
+        }
+      }
 
-      // 實作分類過濾邏輯
-       categorySelect.addEventListener('ionChange', event => {
-         console.log(categorySelect.value)
-         updateList()
-         })
+      // 設置事件監聽器
+      function setupEventListeners() {
+        // Assignment 2.1 搜索和分類功能
+        searchbar.addEventListener('ionInput', handleSearch);
+        categorySelect.addEventListener('ionChange', handleCategoryChange);
+        
+        // Assignment 2.2 分頁功能
+        limitSelect.addEventListener('ionChange', handleLimitChange);
+        prevBtn.addEventListener('click', goToPrevPage);
+        nextBtn.addEventListener('click', goToNextPage);
+        
+        // Assignment 2.2 認證功能
+        authBtn.addEventListener('click', openAuthModal);
+        document.getElementById('auth-form').addEventListener('submit', handleAuth);
+      }
 
-      // 初始化顯示
-      initializeCategoryOptions()  // 先初始化分類選項
-      updateList()                 // 然後顯示清單
+      // Assignment 2.1 搜索功能
+      function handleSearch(event) {
+        currentPage = 1;
+        filterAndDisplayItems();
+      }
+
+      // Assignment 2.1 分類功能
+      function handleCategoryChange(event) {
+        currentPage = 1;
+        filterAndDisplayItems();
+      }
+
+      // Assignment 2.2 分頁功能
+      function handleLimitChange(event) {
+        itemsPerPage = parseInt(event.detail.value);
+        currentPage = 1;
+        filterAndDisplayItems();
+      }
+
+      function goToPrevPage() {
+        if (currentPage > 1) {
+          currentPage--;
+          filterAndDisplayItems();
+        }
+      }
+
+      function goToNextPage() {
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+        if (currentPage < totalPages) {
+          currentPage++;
+          filterAndDisplayItems();
+        }
+      }
+
+      // 初始化數據
+      async function initializeData() {
+        try {
+          // 首先嘗試使用本地數據
+          allItems = items.map((item, index) => ({
+            id: index + 1,
+            title: item.pose.replace('Pose : ', ''),
+            description: item.benefits,
+            level: item.level.replace('Level : ', ''),
+            benefits: item.benefits.replace('Benefits : ', ''),
+            keys: item.keys.replace('Keys : ', ''),
+            cautions: item.cautions.replace('Cautions : ', ''),
+            category: item.category,
+            tags: item.tags || [],
+            imageUrl: item.imageUrl,
+            videoUrl: item.videoUrl,
+            // 保持原始格式用於顯示
+            pose: item.pose,
+            originalLevel: item.level,
+            originalBenefits: item.benefits,
+            originalKeys: item.keys,
+            originalCautions: item.cautions
+          }));
+          
+          console.log('使用本地數據，共', allItems.length, '項');
+        } catch (error) {
+          console.error('數據加載失敗:', error);
+          allItems = [];
+        }
+
+        // 初始化分類選項
+        initializeCategoryOptions();
+        
+        // 顯示項目
+        filterAndDisplayItems();
+      }
+
+      // Assignment 2.1 分類選項初始化
+      function initializeCategoryOptions() {
+        const categories = [...new Set(allItems.map(item => item.category))];
+        
+        const allOption = categorySelect.querySelector('ion-select-option[value=""]');
+        categorySelect.innerHTML = '';
+        categorySelect.appendChild(allOption);
+        
+        categories.forEach(category => {
+          const option = document.createElement('ion-select-option');
+          option.value = category;
+          option.textContent = category;
+          categorySelect.appendChild(option);
+        });
+      }
+
+      // Assignment 2.1 + Assignment 2.2 過濾和顯示功能
+      function filterAndDisplayItems() {
+        const searchTerm = searchbar.value ? searchbar.value.toLowerCase() : '';
+        const selectedCategory = categorySelect.value;
+
+        // Assignment 2.1 過濾邏輯
+        filteredItems = allItems.filter(item => {
+          const searchMatch = !searchTerm || 
+            item.pose.toLowerCase().includes(searchTerm) ||
+            item.level.toLowerCase().includes(searchTerm) ||
+            item.benefits.toLowerCase().includes(searchTerm) ||
+            item.keys.toLowerCase().includes(searchTerm) ||
+            item.category.toLowerCase().includes(searchTerm) ||
+            (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
+          
+          const categoryMatch = !selectedCategory || item.category === selectedCategory;
+          
+          return searchMatch && categoryMatch;
+        });
+
+        displayCurrentPage();
+      }
+
+      // Assignment 2.2 分頁顯示
+      function displayCurrentPage() {
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const currentItems = filteredItems.slice(startIndex, endIndex);
+
+        // 更新分頁信息
+        paginationInfo.textContent = `頁面 ${currentPage} / ${totalPages || 1}，共 ${filteredItems.length} 項`;
+        
+        // 更新分頁按鈕狀態
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= totalPages;
+
+        // 清空列表
+        const templateClone = template.cloneNode(true);
+        list.innerHTML = '';
+
+        // Assignment 2.1 顯示邏輯 + Assignment 2.2 收藏功能
+        currentItems.forEach(item => {
+          const node = templateClone.cloneNode(true);
+          
+          // Assignment 2.1 原始顯示邏輯
+          node.querySelector('.item-pose').textContent = item.pose;
+          node.querySelector('.item-level').textContent = item.originalLevel;
+          node.querySelector('.item-benefits').textContent = item.originalBenefits;
+          node.querySelector('.item-keys').textContent = item.originalKeys;
+          node.querySelector('.item-cautions').textContent = item.originalCautions;
+          
+          // 圖片設置
+          const imageElement = node.querySelector('.item-image');
+          if (item.imageUrl) {
+            imageElement.src = item.imageUrl;
+            imageElement.alt = item.pose;
+            imageElement.style.display = 'block';
+          } else {
+            imageElement.style.display = 'none';
+          }
+          
+          // 影片設置
+          const videoElement = node.querySelector('.item-video');
+          const videoContainer = node.querySelector('.item-video-container');
+          if (item.videoUrl && item.videoUrl.includes('youtube.com/watch?v=')) {
+            const videoId = item.videoUrl.split('v=')[1].split('&')[0];
+            const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            videoElement.src = embedUrl;
+            videoContainer.style.display = 'block';
+          } else if (item.videoUrl && item.videoUrl !== 'videos/.mp4') {
+            videoElement.src = item.videoUrl;
+            videoContainer.style.display = 'block';
+          } else {
+            videoContainer.style.display = 'none';
+          }
+          
+          // Assignment 2.1 標籤功能
+          setupTags(node, item);
+          
+          // Assignment 2.2 收藏功能
+          setupBookmark(node, item);
+          
+          list.appendChild(node);
+        });
+      }
+
+      // Assignment 2.1 標籤設置
+      function setupTags(node, item) {
+        if (item.tags && item.tags.length > 0) {
+          ['item-tag-1', 'item-tag-2', 'item-tag-3'].forEach((className, index) => {
+            const tagElement = node.querySelector(`.${className}`);
+            if (item.tags[index]) {
+              tagElement.textContent = item.tags[index];
+              tagElement.style.display = 'inline-block';
+              tagElement.style.cursor = 'pointer';
+              tagElement.addEventListener('click', () => {
+                searchbar.value = item.tags[index];
+                handleSearch({ detail: { value: item.tags[index] } });
+              });
+            } else {
+              tagElement.style.display = 'none';
+            }
+          });
+        } else {
+          node.querySelectorAll('.item-tag-1, .item-tag-2, .item-tag-3')
+            .forEach(tag => tag.style.display = 'none');
+        }
+      }
+
+      // Assignment 2.2 收藏設置
+      function setupBookmark(node, item) {
+        const bookmarkBtn = node.querySelector('.bookmark-btn');
+        const isBookmarked = bookmarks.includes(item.id);
+        
+        // 設置收藏狀態
+        if (isBookmarked) {
+          bookmarkBtn.classList.add('bookmarked');
+          bookmarkBtn.querySelector('ion-icon').name = 'heart';
+        } else {
+          bookmarkBtn.classList.remove('bookmarked');
+          bookmarkBtn.querySelector('ion-icon').name = 'heart-outline';
+        }
+        
+        // 收藏點擊事件
+        bookmarkBtn.addEventListener('click', async () => {
+          if (!currentUser) {
+            alert('請先登入才能使用收藏功能');
+            return;
+          }
+          
+          try {
+            if (isBookmarked) {
+              await removeBookmark(item.id);
+            } else {
+              await addBookmark(item.id);
+            }
+            filterAndDisplayItems(); // 重新渲染
+          } catch (error) {
+            console.error('收藏操作失敗:', error);
+          }
+        });
+      }
+
+      // Assignment 2.2 收藏功能
+      async function addBookmark(itemId) {
+        if (!bookmarks.includes(itemId)) {
+          bookmarks.push(itemId);
+          localStorage.setItem('local_bookmarks', JSON.stringify(bookmarks));
+        }
+      }
+
+      async function removeBookmark(itemId) {
+        const index = bookmarks.indexOf(itemId);
+        if (index > -1) {
+          bookmarks.splice(index, 1);
+          localStorage.setItem('local_bookmarks', JSON.stringify(bookmarks));
+        }
+      }
+
+      // Assignment 2.2 認證功能
+      function openAuthModal() {
+        if (currentUser) {
+          // 已登入，顯示登出選項
+          if (confirm(`${currentUser.username}，確定要登出嗎？`)) {
+            logout();
+          }
+        } else {
+          // 未登入，顯示登入模態框
+          authModal.present();
+        }
+      }
+
+      function closeAuthModal() {
+        authModal.dismiss();
+      }
+
+      window.closeAuthModal = closeAuthModal;
+
+      function switchAuthMode() {
+        isLoginMode = !isLoginMode;
+        const title = document.getElementById('auth-modal-title');
+        const submitText = document.getElementById('auth-submit-text');
+        const switchText = document.getElementById('auth-switch-text');
+        
+        if (isLoginMode) {
+          title.textContent = '登入';
+          submitText.textContent = '登入';
+          switchText.textContent = '還沒有帳號？註冊';
+        } else {
+          title.textContent = '註冊';
+          submitText.textContent = '註冊';
+          switchText.textContent = '已有帳號？登入';
+        }
+      }
+
+      window.switchAuthMode = switchAuthMode;
+
+      async function handleAuth(event) {
+        event.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        try {
+          // 本地模擬認證
+          const mockToken = 'mock_token_' + Date.now();
+          
+          currentUser = { username, token: mockToken };
+          localStorage.setItem('auth_token', mockToken);
+          localStorage.setItem('username', username);
+          
+          authBtn.innerHTML = `<ion-icon name="person"></ion-icon> ${username}`;
+          
+          await loadBookmarks();
+          closeAuthModal();
+          
+          alert(isLoginMode ? '登入成功！' : '註冊成功！');
+          
+          // 重新顯示項目以更新收藏狀態
+          filterAndDisplayItems();
+          
+        } catch (error) {
+          alert('認證失敗：' + error.message);
+        }
+      }
+
+      function logout() {
+        currentUser = null;
+        bookmarks = [];
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('username');
+        localStorage.removeItem('local_bookmarks');
+        
+        authBtn.innerHTML = '<ion-icon name="person-outline"></ion-icon> 登入';
+        
+        // 重新顯示項目以移除收藏狀態
+        filterAndDisplayItems();
+        
+        alert('已登出');
+      }
+
+      // 初始化應用
+      initializeApp();
     </script>
   </body>
 </html>

@@ -30,6 +30,9 @@ export class YogaPosesApp {
    * 初始化應用程式
    */
   private async init() {
+    // 等待 DOM 完全載入
+    await this.waitForDOMReady();
+    
     // 檢查登入狀態
     await this.checkAuthStatus();
     
@@ -38,6 +41,28 @@ export class YogaPosesApp {
     
     // 設定事件監聽器
     this.setupEventListeners();
+    
+    // 設定認證成功事件監聽
+    document.addEventListener('authSuccess', ((e: CustomEvent) => {
+      this.currentUser = e.detail.userId;
+      this.updateAuthUI(true);
+      this.loadBookmarks();
+      this.applyLocalFilters();
+      this.renderPoses(this.filteredPoses);
+    }) as EventListener);
+  }
+
+  /**
+   * 等待 DOM 準備就緒
+   */
+  private waitForDOMReady(): Promise<void> {
+    return new Promise((resolve) => {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => resolve());
+      } else {
+        resolve();
+      }
+    });
   }
 
   /**
@@ -188,16 +213,16 @@ export class YogaPosesApp {
   }
 
   /**
-   * 渲染瑜伽動作列表
+   * 渲染瑜伽動作列表 - 使用 Assignment 2.1 的樣式結構
    */
   private renderPoses(poses: YogaPose[]) {
-    const container = document.getElementById('poses-container');
+    const container = document.getElementById('poses-list');
     if (!container) return;
 
     container.innerHTML = poses.map(pose => `
-      <ion-card class="pose-card" data-pose-id="${pose.id}">
-        <div class="card-image-container">
-          <img src="${pose.imageUrl}" alt="${pose.title}" loading="lazy" />
+      <ion-item class="list-item">
+        <div class="item-content">
+          <!-- Assignment 2.2 新增：收藏按鈕 -->
           ${this.currentUser ? `
             <ion-button 
               fill="clear" 
@@ -207,33 +232,90 @@ export class YogaPosesApp {
               <ion-icon name="${this.bookmarkedIds.has(pose.id) ? 'bookmark' : 'bookmark-outline'}"></ion-icon>
             </ion-button>
           ` : ''}
+          
+          <!-- Assignment 2.1 原有結構 -->
+          <div class="item-pose">${pose.title}</div>
+          <div class="item-level">${pose.level || 'Level : 未知'}</div>
+          <div class="item-benefits">${pose.benefits || pose.description}</div>
+          <div class="item-keys">${pose.keys || '暫無要點資訊'}</div>
+          <div class="item-cautions">${pose.cautions || '暫無注意事項'}</div>
+          
+          <!-- Assignment 2.1 原有：媒體容器 -->
+          <div class="media-container">
+            <div class="item-image-container">
+              <img class="item-image" src="${pose.imageUrl}" alt="${pose.title}" 
+                   style="width: 100%; max-width: 550px; height: 310px; border-radius: 16px;">
+            </div>
+            ${pose.videoUrl ? `
+              <div class="item-video-container">
+                <iframe class="item-video" 
+                        src="${this.convertToEmbedUrl(pose.videoUrl)}" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                </iframe>
+              </div>
+            ` : ''}
+          </div>
+          
+          <!-- Assignment 2.1 原有：標籤容器 -->
+          <div class="tag-container">
+            ${this.renderTags(pose)}
+          </div>
         </div>
-        
-        <ion-card-header>
-          <ion-card-title>${pose.title}</ion-card-title>
-          <ion-card-subtitle>${pose.category}</ion-card-subtitle>
-        </ion-card-header>
-        
-        <ion-card-content>
-          <p class="description">${pose.description}</p>
-          
-          ${pose.level ? `<p><strong>Level:</strong> ${pose.level}</p>` : ''}
-          ${pose.benefits ? `<p><strong>Benefits:</strong> ${pose.benefits}</p>` : ''}
-          ${pose.keys ? `<p><strong>Keys:</strong> ${pose.keys}</p>` : ''}
-          ${pose.cautions ? `<p><strong>Cautions:</strong> ${pose.cautions}</p>` : ''}
-          
-          ${pose.videoUrl ? `
-            <ion-button fill="outline" size="small" onclick="window.open('${pose.videoUrl}', '_blank')">
-              <ion-icon slot="start" name="play-circle-outline"></ion-icon>
-              觀看教學影片
-            </ion-button>
-          ` : ''}
-        </ion-card-content>
-      </ion-card>
+      </ion-item>
     `).join('');
 
     // 重新設定收藏按鈕事件
     this.setupBookmarkButtons();
+    
+    // 重新設定標籤點擊事件 (Assignment 2.1 功能)
+    this.setupTagClickEvents();
+  }
+
+  /**
+   * Assignment 2.1 功能：渲染標籤
+   */
+  private renderTags(pose: YogaPose): string {
+    if (!pose.tags || pose.tags.length === 0) {
+      return '';
+    }
+
+    return pose.tags.slice(0, 3).map((tag, index) => {
+      const tagClass = `item-tag-${index + 1}`;
+      return `<ion-chip size="small" class="${tagClass}" data-tag="${tag}">${tag}</ion-chip>`;
+    }).join('');
+  }
+
+  /**
+   * Assignment 2.1 功能：設定標籤點擊事件
+   */
+  private setupTagClickEvents() {
+    const tagChips = document.querySelectorAll('.tag-container ion-chip');
+    tagChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const tag = (chip as HTMLElement).dataset.tag;
+        if (tag) {
+          const searchBar = document.getElementById('search-bar') as any;
+          if (searchBar) {
+            searchBar.value = tag;
+            // 觸發搜尋
+            this.applyFilters({ page: 1, limit: 3, search: tag });
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * 將 YouTube URL 轉換為嵌入格式
+   */
+  private convertToEmbedUrl(url: string): string {
+    if (url.includes('youtube.com/watch?v=')) {
+      const videoId = url.split('v=')[1].split('&')[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    return url;
   }
 
   /**
@@ -467,5 +549,8 @@ export class YogaPosesApp {
 
 // 當 DOM 載入完成後初始化應用程式
 document.addEventListener('DOMContentLoaded', () => {
-  new YogaPosesApp();
+  // 等待 Ionic 元件載入完成
+  setTimeout(() => {
+    new YogaPosesApp();
+  }, 100);
 });
