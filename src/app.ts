@@ -1,5 +1,6 @@
 import { ApiService } from './services/api.js';
 import { AuthManager } from './services/auth.js';
+import { FilterManager } from './services/filter.js';
 import { YogaPose, LoadingState, QueryParams } from './types/index.js';
 
 /**
@@ -8,16 +9,20 @@ import { YogaPose, LoadingState, QueryParams } from './types/index.js';
 export class YogaPosesApp {
   private apiService: ApiService;
   private authManager: AuthManager;
+  private filterManager: FilterManager;
   private currentPage: number = 1;
   private isLoading: boolean = false;
   private hasMoreData: boolean = true;
   private allPoses: YogaPose[] = [];
+  private filteredPoses: YogaPose[] = [];
   private bookmarkedIds: Set<number> = new Set();
   private currentUser: number | null = null;
+  private currentFilters: QueryParams = {};
 
   constructor() {
     this.apiService = new ApiService();
     this.authManager = new AuthManager(this.apiService);
+    this.filterManager = new FilterManager((params) => this.applyFilters(params));
     this.init();
   }
 
@@ -64,6 +69,12 @@ export class YogaPosesApp {
       const bookmarks = await this.apiService.getBookmarks();
       this.bookmarkedIds = new Set(bookmarks.item_ids);
       this.updateBookmarkButtons();
+      
+      // 如果目前是只看收藏模式，需要重新應用過濾
+      if (this.filterManager.isBookmarksOnly) {
+        this.applyLocalFilters();
+        this.renderPoses(this.filteredPoses);
+      }
     } catch (error) {
       console.error('載入收藏列表失敗:', error);
     }
@@ -82,16 +93,64 @@ export class YogaPosesApp {
       });
       
       this.allPoses = response.items;
+      this.filteredPoses = [...this.allPoses];
       this.currentPage = response.pagination.page;
       this.hasMoreData = response.items.length === response.pagination.limit;
       
-      this.renderPoses(this.allPoses);
+      // 更新分類選項
+      this.updateCategoryOptions();
+      
+      this.renderPoses(this.filteredPoses);
       this.updateLoadMoreButton();
       this.hideLoadingState();
       
     } catch (error) {
       this.showErrorState(error instanceof Error ? error.message : '載入資料失敗');
     }
+  }
+
+  /**
+   * 應用過濾條件
+   */
+  private async applyFilters(params: QueryParams) {
+    this.currentFilters = params;
+    this.currentPage = 1;
+    this.showLoadingState();
+
+    try {
+      const response = await this.apiService.fetchYogaPoses(params);
+      
+      this.allPoses = response.items;
+      this.currentPage = response.pagination.page;
+      this.hasMoreData = response.items.length === response.pagination.limit;
+      
+      this.applyLocalFilters();
+      this.renderPoses(this.filteredPoses);
+      this.updateLoadMoreButton();
+      this.hideLoadingState();
+      
+    } catch (error) {
+      this.showErrorState(error instanceof Error ? error.message : '載入資料失敗');
+    }
+  }
+
+  /**
+   * 應用本地過濾和排序
+   */
+  private applyLocalFilters() {
+    // 先應用收藏過濾
+    this.filteredPoses = this.filterManager.filterLocalPoses(this.allPoses, this.bookmarkedIds);
+    
+    // 再應用排序
+    this.filteredPoses = this.filterManager.sortLocalPoses(this.filteredPoses);
+  }
+
+  /**
+   * 更新分類選項
+   */
+  private updateCategoryOptions() {
+    const categories = [...new Set(this.allPoses.map(pose => pose.category))];
+    this.filterManager.updateCategoryOptions(categories);
   }
 
   /**
@@ -104,16 +163,20 @@ export class YogaPosesApp {
     this.showLoadMoreLoading();
     
     try {
-      const response = await this.apiService.fetchYogaPoses({
+      const params = {
+        ...this.currentFilters,
         page: this.currentPage + 1,
         limit: 3
-      });
+      };
+      
+      const response = await this.apiService.fetchYogaPoses(params);
       
       this.allPoses.push(...response.items);
       this.currentPage = response.pagination.page;
       this.hasMoreData = response.items.length === response.pagination.limit;
       
-      this.renderPoses(this.allPoses);
+      this.applyLocalFilters();
+      this.renderPoses(this.filteredPoses);
       this.updateLoadMoreButton();
       
     } catch (error) {
@@ -287,7 +350,8 @@ export class YogaPosesApp {
       this.currentUser = event.detail.userId;
       this.updateAuthUI(true);
       this.loadBookmarks();
-      this.renderPoses(this.allPoses); // 重新渲染以顯示收藏按鈕
+      this.applyLocalFilters();
+      this.renderPoses(this.filteredPoses); // 重新渲染以顯示收藏按鈕
     });
   }
 
@@ -324,6 +388,12 @@ export class YogaPosesApp {
       }
       
       this.updateBookmarkButtons();
+      
+      // 如果目前是只看收藏模式，需要重新應用過濾
+      if (this.filterManager.isBookmarksOnly) {
+        this.applyLocalFilters();
+        this.renderPoses(this.filteredPoses);
+      }
       
     } catch (error) {
       this.showErrorMessage(`收藏操作失敗: ${error instanceof Error ? error.message : '未知錯誤'}`);
@@ -390,7 +460,8 @@ export class YogaPosesApp {
     this.currentUser = null;
     this.bookmarkedIds.clear();
     this.updateAuthUI(false);
-    this.renderPoses(this.allPoses); // 重新渲染以移除收藏按鈕
+    this.applyLocalFilters();
+    this.renderPoses(this.filteredPoses); // 重新渲染以移除收藏按鈕
   }
 }
 

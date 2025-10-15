@@ -294,6 +294,37 @@
             登入
           </ion-button>
         </ion-toolbar>
+        
+        <!-- 搜尋欄 -->
+        <ion-searchbar 
+          id="search-bar"
+          placeholder="搜尋瑜伽動作..."
+          debounce="500"
+        ></ion-searchbar>
+        
+        <!-- 過濾和排序選項 -->
+        <div style="padding: 8px 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <ion-item style="flex: 1; min-width: 150px;">
+            <ion-select id="category-filter" label="分類" interface="popover" placeholder="全部分類">
+              <ion-select-option value="">全部分類</ion-select-option>
+            </ion-select>
+          </ion-item>
+          
+          <ion-item style="flex: 1; min-width: 150px;">
+            <ion-select id="sort-select" label="排序" interface="popover" value="default">
+              <ion-select-option value="default">預設排序</ion-select-option>
+              <ion-select-option value="title-asc">標題 A-Z</ion-select-option>
+              <ion-select-option value="title-desc">標題 Z-A</ion-select-option>
+              <ion-select-option value="category-asc">分類 A-Z</ion-select-option>
+              <ion-select-option value="category-desc">分類 Z-A</ion-select-option>
+            </ion-select>
+          </ion-item>
+          
+          <ion-button id="bookmarks-only-btn" fill="outline" style="height: 40px;">
+            <ion-icon slot="start" name="bookmark-outline"></ion-icon>
+            只看收藏
+          </ion-button>
+        </div>
       </ion-header>
 
       <ion-content>
