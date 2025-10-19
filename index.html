@@ -1474,7 +1474,7 @@
       // 真實登入API
       async function loginUser(username, password) {
         try {
-          const response = await fetch('https://dae-mobile-assignment.hkit.cc/auth/login', {
+          const response = await fetch('https://dae-mobile-assignment.hkit.cc/api/auth/login', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1546,7 +1546,7 @@
       // 真實註冊API
       async function signupUser(username, email, password) {
         try {
-          const response = await fetch('https://dae-mobile-assignment.hkit.cc/auth/signup', {
+          const response = await fetch('https://dae-mobile-assignment.hkit.cc/api/auth/signup', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1776,7 +1776,7 @@
             return { valid: false };
           }
 
-          const response = await fetch('https://dae-mobile-assignment.hkit.cc/auth/check', {
+          const response = await fetch('https://dae-mobile-assignment.hkit.cc/api/auth/check', {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -1840,7 +1840,7 @@
             return { success: true };
           }
 
-          const response = await fetch('https://dae-mobile-assignment.hkit.cc/auth/logout', {
+          const response = await fetch('https://dae-mobile-assignment.hkit.cc/api/auth/logout', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
