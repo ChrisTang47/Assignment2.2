@@ -801,6 +801,9 @@
           console.warn('⚠️ 過濾後沒有任何項目顯示！');
         }
         
+        // 更新全局變量 filteredItems 以確保後續操作正確
+        filteredItems = [...itemsToDisplay];
+        
         // 重新顯示項目
         const list = document.getElementById('poses-list');
         list.innerHTML = '<div class="poses-grid"></div>';
@@ -816,7 +819,7 @@
           info.innerHTML = `
             <strong>收藏項目: ${itemsToDisplay.length} 項</strong>
             <br>
-            <small style="color: #666;">${currentUser ? '只顯示您收藏的項目' : '請登錄後收藏項目'}</small>
+            <small style="color: #666;">關閉收藏過濾可瀏覽更多項目</small>
           `;
         } else {
           updatePaginationInfo();
