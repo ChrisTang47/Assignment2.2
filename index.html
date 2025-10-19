@@ -309,7 +309,7 @@
             
             <div class="filter-item">
               <label>每頁顯示</label>
-              <ion-select id="limit-select" value="10">
+              <ion-select id="limit-select" value="5">
                 <ion-select-option value="5">5 項</ion-select-option>
                 <ion-select-option value="10">10 項</ion-select-option>
                 <ion-select-option value="20">20 項</ion-select-option>
@@ -340,17 +340,23 @@
         <div id="pagination-container" style="display: none; text-align: center; padding: 20px;">
           <p id="pagination-info">顯示第 1-10 項，共 50 項</p>
           
-          <!-- Step 24: 傳統載入更多按鈕（可選） -->
-          <ion-button id="load-more-btn" fill="outline" onclick="loadMoreData()" style="display: none;">載入更多</ion-button>
-          
-          <!-- Step 24: 無限滾動載入指示器 -->
-          <div id="infinite-scroll-loading" style="display: none; padding: 20px;">
-            <ion-spinner name="crescent" style="margin-right: 10px;"></ion-spinner>
-            <span>正在載入更多瑜伽動作...</span>
+          <!-- 無限滾動載入指示器 -->
+          <div id="infinite-scroll-loading" style="display: none; padding: 20px; text-align: center;">
+            <ion-spinner name="crescent" style="margin-right: 10px; --color: #3880ff;"></ion-spinner>
+            <span style="color: #3880ff; font-size: 14px;">正在載入更多瑜伽動作...</span>
           </div>
           
-          <div id="load-more-error" style="display: none; color: red; margin-top: 10px;">載入失敗，請重試</div>
-          <div id="no-more-data" style="display: none; color: #666; margin-top: 10px;">沒有更多數據了</div>
+          <!-- 載入錯誤指示器 -->
+          <div id="load-more-error" style="display: none; color: #e53e3e; margin-top: 10px; text-align: center;">
+            <ion-icon name="alert-circle-outline" style="margin-right: 5px;"></ion-icon>
+            <span>載入失敗，請向下滾動重試</span>
+          </div>
+          
+          <!-- 無更多數據指示器 -->
+          <div id="no-more-data" style="display: none; color: #718096; margin-top: 15px; text-align: center; padding: 10px;">
+            <ion-icon name="checkmark-circle-outline" style="margin-right: 5px;"></ion-icon>
+            <span>已載入所有瑜伽動作</span>
+          </div>
         </div>
       </ion-content>
 
@@ -601,6 +607,8 @@
       // Step 24: 無限滾動狀態 (默認啟用無限滾動)
       let isInfiniteScrollEnabled = true;
       let isLoadingMore = false;
+      let autoLoadCounter = 0; // 防止無限遞歸的計數器
+      const MAX_AUTO_LOADS = 5; // 最多自動載入5次
       
       // 認證和會話管理
       
@@ -617,6 +625,7 @@
       
       // API 函數 - 帶重試機制 (支持搜索、分類、排序參數)
       async function fetchFromAPIWithRetry(page = 1, limit = 10, searchParams = {}) {
+        console.log('🌐 開始 API 調用:', { page, limit, searchParams });
         const maxRetries = CONFIG.MAX_RETRIES;
         
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -717,6 +726,10 @@
       function toggleBookmarkFilter() {
         currentSearchParams.showBookmarkedOnly = !currentSearchParams.showBookmarkedOnly;
         
+        console.log('🔄 切換書籤過濾:', currentSearchParams.showBookmarkedOnly);
+        console.log('📚 目前書籤數量:', bookmarks.length);
+        console.log('📋 目前項目數量:', allItems.length);
+        
         const filterBtn = document.getElementById('bookmark-filter-btn');
         const icon = filterBtn.querySelector('ion-icon');
         
@@ -737,11 +750,34 @@
       }
       
       function applyBookmarkFilter() {
+        console.log('🔍 開始收藏過濾...');
+        console.log('   showBookmarkedOnly:', currentSearchParams.showBookmarkedOnly);
+        console.log('   bookmarks數量:', bookmarks.length);
+        console.log('   allItems數量:', allItems.length);
+        
+        if (currentSearchParams.showBookmarkedOnly) {
+          console.log('   收藏ID列表:', bookmarks.map(b => b.id));
+          console.log('   項目ID列表(前5個):', allItems.slice(0,5).map(item => item.id));
+          
+          // 詳細匹配檢查
+          const matches = [];
+          allItems.forEach(item => {
+            const isBookmarked = bookmarks.some(bookmark => {
+              const match = parseInt(bookmark.id) === parseInt(item.id);
+              if (match) {
+                matches.push({itemId: item.id, bookmarkId: bookmark.id, title: item.title});
+              }
+              return match;
+            });
+          });
+          console.log('   匹配的項目:', matches);
+        }
+        
         const itemsToDisplay = currentSearchParams.showBookmarkedOnly 
-          ? allItems.filter(item => bookmarks.includes(item.id))
+          ? allItems.filter(item => bookmarks.some(bookmark => parseInt(bookmark.id) === parseInt(item.id)))
           : allItems;
           
-        console.log(`收藏過濾: ${currentSearchParams.showBookmarkedOnly ? '只顯示收藏' : '顯示全部'}, 結果: ${itemsToDisplay.length}/${allItems.length}`);
+        console.log(`📊 收藏過濾結果: ${itemsToDisplay.length}/${allItems.length} 項目`);
         
         // 重新顯示項目
         const list = document.getElementById('poses-list');
@@ -751,11 +787,9 @@
         // 更新分頁信息
         if (currentSearchParams.showBookmarkedOnly) {
           const pagination = document.getElementById('pagination-container');
-          const loadMoreBtn = document.getElementById('load-more-btn');
           const noMoreData = document.getElementById('no-more-data');
           const info = document.getElementById('pagination-info');
           
-          loadMoreBtn.style.display = 'none';
           noMoreData.style.display = 'none';
           info.innerHTML = `
             <strong>收藏項目: ${itemsToDisplay.length} 項</strong>
@@ -799,21 +833,22 @@
           return;
         }
         
-        // 如果啟用了收藏過濾，則不執行無限滾動
-        if (currentSearchParams.showBookmarkedOnly) {
-          console.log('收藏過濾模式，跳過無限滾動');
-          return;
-        }
-        
-        // 檢查是否接近頁面底部（距離底部200px時觸發，或者如果頁面太短則立即觸發）
-        if (scrollTop + windowHeight >= documentHeight - 200 || documentHeight <= windowHeight + 50) {
+        // 檢查是否接近頁面底部（距離底部200px時觸發）
+        if (scrollTop + windowHeight >= documentHeight - CONFIG.INFINITE_SCROLL_THRESHOLD) {
           console.log('✅ 觸發無限滾動載入');
+          autoLoadCounter = 0; // 用戶滾動觸發的載入，重置計數器
           loadMoreDataInfinite();
         }
       }
       
       async function loadMoreDataInfinite() {
         if (isLoadingMore || !hasMoreData) {
+          return;
+        }
+        
+        // 防止遞歸過深
+        if (autoLoadCounter >= MAX_AUTO_LOADS) {
+          console.log('⚠️ 自動載入已達上限，停止載入');
           return;
         }
         
@@ -851,11 +886,11 @@
           // 更新分頁信息
           updatePaginationInfo();
           
-          // 如果還有更多數據，再次檢查是否需要繼續載入
-          if (hasMoreData) {
+          // 如果還有更多數據，再次檢查是否需要繼續載入（但限制遞歸深度）
+          if (hasMoreData && !currentSearchParams.showBookmarkedOnly) {
             setTimeout(() => {
               checkAndTriggerInfiniteScroll();
-            }, 300);
+            }, 500);
           }
           
         } catch (error) {
@@ -881,16 +916,13 @@
       
       function toggleInfiniteScroll() {
         isInfiniteScrollEnabled = !isInfiniteScrollEnabled;
-        const loadMoreBtn = document.getElementById('load-more-btn');
         
         if (isInfiniteScrollEnabled) {
           setupInfiniteScroll();
-          loadMoreBtn.style.display = 'none';
           console.log('✅ 切換到無限滾動模式');
         } else {
           window.removeEventListener('scroll', handleInfiniteScroll);
-          loadMoreBtn.style.display = hasMoreData ? 'block' : 'none';
-          console.log('✅ 切換到手動載入模式');
+          console.log('✅ 無限滾動已停用');
         }
       }
       
@@ -1064,6 +1096,7 @@
         currentPage = 1;
         allItems = [];
         hasMoreData = true;
+        autoLoadCounter = 0; // 重置自動載入計數器
         loading.style.display = 'block';
         error.style.display = 'none';
         list.style.display = 'none';
@@ -1093,10 +1126,11 @@
             applyBookmarkFilter();
           }
           
-          // 檢查是否需要立即載入更多數據（如果頁面太短無法滾動）
-          setTimeout(() => {
-            checkAndTriggerInfiniteScroll();
-          }, 500);
+          // 暫時禁用自動觸發無限滾動 (避免載入循環)
+          console.log('✅ 數據載入完成，跳過自動無限滾動觸發');
+          // setTimeout(() => {
+          //   checkAndTriggerInfiniteScroll();
+          // }, 500);
           
         } catch (error) {
           console.error('❌ 載入數據失敗:', error);
@@ -1212,12 +1246,20 @@
           documentHeight,
           hasMoreData,
           isInfiniteScrollEnabled,
+          autoLoadCounter,
           ratio: documentHeight / windowHeight
         });
         
-        // 如果頁面內容太少（小於視窗高度的1.2倍），且還有更多數據，則自動載入
-        if (documentHeight < windowHeight * 1.2 && hasMoreData && isInfiniteScrollEnabled && !isLoadingMore) {
+        // 防止無限遞歸：檢查自動載入計數器
+        if (autoLoadCounter >= MAX_AUTO_LOADS) {
+          console.log('⚠️ 已達到最大自動載入次數，停止自動載入');
+          return;
+        }
+        
+        // 如果頁面內容太少（小於視窗高度的1.5倍），且還有更多數據，則自動載入
+        if (documentHeight < windowHeight * 1.5 && hasMoreData && isInfiniteScrollEnabled && !isLoadingMore) {
           console.log('🔄 頁面內容太少，自動觸發載入更多數據');
+          autoLoadCounter++; // 增加計數器
           loadMoreDataInfinite();
         }
       }
@@ -2314,7 +2356,7 @@
           return false;
         }
         
-        const bookmarkIndex = bookmarks.findIndex(b => b.id === itemId);
+        const bookmarkIndex = bookmarks.findIndex(b => parseInt(b.id) === parseInt(itemId));
         const isCurrentlyBookmarked = bookmarkIndex > -1;
         
         // 更新UI狀態（樂觀更新）
@@ -2337,13 +2379,16 @@
             await addBookmark(itemId);
             
             // 添加到本地列表
-            const item = allItems.find(i => i.id === itemId);
+            const item = allItems.find(i => parseInt(i.id) === parseInt(itemId));
             if (item) {
               bookmarks.push({
-                id: itemId,
-                title: item.name,
+                id: parseInt(itemId), // 確保 ID 是數字
+                title: item.title || item.sanskrit_name || '無標題',
                 addedAt: new Date().toISOString()
               });
+              console.log('✅ 已添加書籤:', {id: parseInt(itemId), title: item.title || item.sanskrit_name});
+            } else {
+              console.error('❌ 找不到要收藏的項目:', itemId, '在', allItems.length, '個項目中');
             }
             showSuccessMessage('已加入收藏');
           }
@@ -2391,7 +2436,7 @@
         const bookmarkBtns = document.querySelectorAll('.bookmark-btn');
         bookmarkBtns.forEach(btn => {
           const itemId = parseInt(btn.getAttribute('data-item-id'));
-          const isBookmarked = bookmarks.some(b => b.id === itemId);
+          const isBookmarked = bookmarks.some(b => parseInt(b.id) === itemId);
           
           // 重置按鈕狀態
           btn.disabled = false;
@@ -2479,15 +2524,33 @@
           }
         }, CONFIG.AUTO_LOGOUT_INTERVAL);
         
+        // 強制設置 itemsPerPage 為 5 (避免初始化問題)
+        itemsPerPage = 5;
+        console.log('🔧 強制設置 itemsPerPage =', itemsPerPage);
+        
         // 設置事件監聽器 - Step 20: API搜索, Step 22: 排序功能
         document.getElementById('search-bar').addEventListener('ionInput', performAPISearch);
         document.getElementById('category-select').addEventListener('ionChange', performAPISearch);
         document.getElementById('sort-select').addEventListener('ionChange', performAPISearch);
         document.getElementById('order-select').addEventListener('ionChange', performAPISearch);
-        document.getElementById('limit-select').addEventListener('ionChange', (e) => {
-          itemsPerPage = parseInt(e.detail.value);
-          loadData(); // 重新載入數據
-        });
+        
+        // 延遲初始化下拉選單事件監聽器
+        setTimeout(() => {
+          const limitSelect = document.getElementById('limit-select');
+          if (limitSelect) {
+            // 同步下拉選單值
+            if (limitSelect.value && parseInt(limitSelect.value) !== itemsPerPage) {
+              itemsPerPage = parseInt(limitSelect.value) || 5;
+              console.log('📝 從選單同步 itemsPerPage =', itemsPerPage);
+            }
+            
+            limitSelect.addEventListener('ionChange', (e) => {
+              itemsPerPage = parseInt(e.detail.value);
+              console.log('itemsPerPage 已更新為:', itemsPerPage);
+              loadData(); // 重新載入數據
+            });
+          }
+        }, 200);
         
         document.getElementById('auth-btn').addEventListener('click', () => {
           if (currentUser) {
