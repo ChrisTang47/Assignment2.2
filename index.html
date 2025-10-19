@@ -958,13 +958,13 @@
           // 更新分頁信息
           updatePaginationInfo();
           
-          // 如果還有更多數據且不在收藏模式，檢查是否需要繼續載入
-          if (hasMoreData && !currentSearchParams.showBookmarkedOnly) {
-            autoLoadCounter++; // 增加自動載入計數器
-            setTimeout(() => {
-              checkAndTriggerInfiniteScroll();
-            }, 500);
-          }
+          // 不自動觸發更多載入 - 讓用戶手動滾動
+          // if (hasMoreData && !currentSearchParams.showBookmarkedOnly) {
+          //   autoLoadCounter++; // 增加自動載入計數器
+          //   setTimeout(() => {
+          //     checkAndTriggerInfiniteScroll();
+          //   }, 500);
+          // }
           
         } catch (error) {
           console.error('❌ 無限滾動載入失敗:', error);
@@ -1195,11 +1195,10 @@
             applyBookmarkFilter();
           }
           
-          // 啟用自動觸發無限滾動檢查（如果頁面內容太少需要自動載入更多）
-          console.log('✅ 數據載入完成，檢查是否需要自動載入更多內容');
-          setTimeout(() => {
-            checkAndTriggerInfiniteScroll();
-          }, 1000); // 增加延遲確保DOM完全渲染
+          // 不自動觸發無限滾動檢查 - 讓用戶手動滾動
+          // setTimeout(() => {
+          //   checkAndTriggerInfiniteScroll();
+          // }, 1000);
           
         } catch (error) {
           console.error('❌ 載入數據失敗:', error);
