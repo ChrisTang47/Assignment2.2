@@ -567,7 +567,7 @@
         MAX_RETRIES: 15,
         SESSION_TIMEOUT: 24 * 60 * 60 * 1000, // 24小時
         SEARCH_DELAY: 500, // 搜索延遲毫秒
-        INFINITE_SCROLL_THRESHOLD: 200, // 距離底部觸發載入的像素
+        INFINITE_SCROLL_THRESHOLD: 100, // 距離底部觸發載入的像素 (降低閾值)
         ITEMS_PER_PAGE_OPTIONS: [5, 10, 20, 50],
         ERROR_DISPLAY_TIMEOUT: 5000, // 錯誤信息顯示時間
         // 時間延遲配置
@@ -845,11 +845,19 @@
           '是否嘗試加載': '總是嘗試加載更多數據'
         });
         
-        // 檢查是否接近頁面底部（距離底部200px時觸發）
-        if (scrollTop + windowHeight >= documentHeight - CONFIG.INFINITE_SCROLL_THRESHOLD) {
+        // 檢查是否接近頁面底部（距離底部100px時觸發，或到達底部）
+        const isNearBottom = scrollTop + windowHeight >= documentHeight - CONFIG.INFINITE_SCROLL_THRESHOLD;
+        const isAtBottom = scrollTop + windowHeight >= documentHeight - 10; // 距離底部10px
+        
+        if (isNearBottom || isAtBottom) {
           console.log('✅ 觸發無限滾動載入條件達成 - 開始載入下一頁數據');
+          console.log('觸發原因:', isAtBottom ? '到達底部' : '接近底部');
           autoLoadCounter = 0; // 用戶滾動觸發的載入，重置計數器
           loadMoreDataInfinite();
+        } else {
+          // 添加更詳細的距離信息
+          const distanceToBottom = documentHeight - (scrollTop + windowHeight);
+          console.log(`距離底部還有: ${Math.round(distanceToBottom)}px`);
         }
       }
       
@@ -1137,11 +1145,11 @@
             applyBookmarkFilter();
           }
           
-          // 暫時禁用自動觸發無限滾動 (避免載入循環)
-          console.log('✅ 數據載入完成，跳過自動無限滾動觸發');
-          // setTimeout(() => {
-          //   checkAndTriggerInfiniteScroll();
-          // }, 500);
+          // 啟用自動觸發無限滾動檢查（如果頁面內容太少需要自動載入更多）
+          console.log('✅ 數據載入完成，檢查是否需要自動載入更多內容');
+          setTimeout(() => {
+            checkAndTriggerInfiniteScroll();
+          }, 1000); // 增加延遲確保DOM完全渲染
           
         } catch (error) {
           console.error('❌ 載入數據失敗:', error);
