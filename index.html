@@ -724,11 +724,24 @@
       
       // Step 23: 收藏過濾功能
       function toggleBookmarkFilter() {
+        // 檢查用戶是否已登入
+        if (!currentUser || !currentUser.id) {
+          showAlert('請先登入會員才能使用收藏過濾功能！', 'warning');
+          return;
+        }
+        
+        // 檢查是否有收藏數據
+        if (!bookmarks || bookmarks.length === 0) {
+          showAlert('您還沒有任何收藏的瑜伽體式！', 'info');
+          return;
+        }
+        
         currentSearchParams.showBookmarkedOnly = !currentSearchParams.showBookmarkedOnly;
         
         console.log('🔄 切換書籤過濾:', currentSearchParams.showBookmarkedOnly);
         console.log('📚 目前書籤數量:', bookmarks.length);
         console.log('📋 目前項目數量:', allItems.length);
+        console.log('👤 當前用戶:', currentUser);
         
         const filterBtn = document.getElementById('bookmark-filter-btn');
         const icon = filterBtn.querySelector('ion-icon');
@@ -754,6 +767,7 @@
         console.log('   showBookmarkedOnly:', currentSearchParams.showBookmarkedOnly);
         console.log('   bookmarks數量:', bookmarks.length);
         console.log('   allItems數量:', allItems.length);
+        console.log('   當前用戶:', currentUser);
         
         if (currentSearchParams.showBookmarkedOnly) {
           console.log('   收藏ID列表:', bookmarks.map(b => b.id));
@@ -771,6 +785,10 @@
             });
           });
           console.log('   匹配的收藏項目:', matchedItems);
+          
+          if (matchedItems.length === 0) {
+            console.warn('⚠️ 沒有找到匹配的收藏項目！');
+          }
         }
         
         const itemsToDisplay = currentSearchParams.showBookmarkedOnly 
@@ -778,6 +796,10 @@
           : allItems;
           
         console.log(`📊 收藏過濾結果: ${itemsToDisplay.length}/${allItems.length} 項目`);
+        
+        if (currentSearchParams.showBookmarkedOnly && itemsToDisplay.length === 0) {
+          console.warn('⚠️ 過濾後沒有任何項目顯示！');
+        }
         
         // 重新顯示項目
         const list = document.getElementById('poses-list');
