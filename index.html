@@ -1487,7 +1487,8 @@
 
           const data = await response.json();
 
-          if (!response.ok) {
+          // Check for API errors even if HTTP status is OK
+          if (!response.ok || data.error) {
             // 處理API錯誤回應
             const errorMessage = data.error || data.message || `登入失敗：HTTP ${response.status}`;
             const errorDetails = data.details ? ` (${data.details})` : '';
@@ -1560,7 +1561,8 @@
 
           const data = await response.json();
 
-          if (!response.ok) {
+          // Check for API errors even if HTTP status is OK
+          if (!response.ok || data.error) {
             // 處理API錯誤回應
             const errorMessage = data.error || data.message || `註冊失敗：HTTP ${response.status}`;
             const errorDetails = data.details ? ` (${data.details})` : '';
@@ -1790,6 +1792,13 @@
           }
 
           const data = await response.json();
+          
+          // Check for API errors even with OK status
+          if (data.error) {
+            console.warn('會話檢查API錯誤:', data.error);
+            return { valid: false };
+          }
+          
           return { valid: true, user: data.user || data };
         } catch (error) {
           console.warn('會話檢查錯誤:', error.message);
