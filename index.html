@@ -837,31 +837,19 @@
           return;
         }
         
-        // 強制檢查是否有更多數據（基於當前頁面和項目數量）
-        const totalItemsExpected = currentPage * itemsPerPage;
-        const shouldHaveMoreData = allItems.length >= totalItemsExpected;
-        
         console.log('🔍 數據狀態檢查:', {
           allItemsLength: allItems.length,
-          totalItemsExpected,
-          shouldHaveMoreData,
-          hasMoreData,
           currentPage,
-          itemsPerPage
+          itemsPerPage,
+          hasMoreData,
+          '是否嘗試加載': '總是嘗試加載更多數據'
         });
         
         // 檢查是否接近頁面底部（距離底部200px時觸發）
         if (scrollTop + windowHeight >= documentHeight - CONFIG.INFINITE_SCROLL_THRESHOLD) {
-          console.log('✅ 觸發無限滾動載入條件達成');
-          
-          // 如果數據量足夠，嘗試加載更多
-          if (shouldHaveMoreData || hasMoreData) {
-            console.log('🚀 開始無限滾動載入');
-            autoLoadCounter = 0; // 用戶滾動觸發的載入，重置計數器
-            loadMoreDataInfinite();
-          } else {
-            console.log('📄 已到達數據末尾，無更多內容可載入');
-          }
+          console.log('✅ 觸發無限滾動載入條件達成 - 開始載入下一頁數據');
+          autoLoadCounter = 0; // 用戶滾動觸發的載入，重置計數器
+          loadMoreDataInfinite();
         }
       }
       
