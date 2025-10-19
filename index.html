@@ -584,7 +584,7 @@
       let filteredItems = [];
       let currentUser = null;
       let currentPage = 1;
-      let itemsPerPage = 10;
+      let itemsPerPage = 5; // 步驟7: 每頁顯示5個，確保有更多數據載入
       let isLoginMode = true;
       let bookmarks = [];
       let hasMoreData = true;
@@ -598,7 +598,7 @@
         showBookmarkedOnly: false
       };
       
-      // Step 24: 無限滾動狀態
+      // Step 24: 無限滾動狀態 (默認啟用無限滾動)
       let isInfiniteScrollEnabled = true;
       let isLoadingMore = false;
       
@@ -677,7 +677,8 @@
             if (data.items && Array.isArray(data.items)) {
               const totalItems = data.pagination?.total || data.items.length;
               const currentTotal = (page - 1) * limit + data.items.length;
-              const hasMoreItems = data.pagination ? (currentTotal < totalItems) : (data.items.length === limit);
+              // 修正: 確保正確檢測是否還有更多數據
+              const hasMoreItems = data.items.length === limit; // 如果返回的項目數等於請求的限制，通常表示還有更多數據
               
               console.log('分頁信息:', {
                 page,
