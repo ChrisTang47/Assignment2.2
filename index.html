@@ -88,6 +88,156 @@
           width: 100%;
         }
       }
+      
+      /* 認證表單樣式 */
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      /* 自定義輸入框樣式 - 修復重疊問題 */
+      .custom-input-item {
+        --padding-start: 16px;
+        --inner-padding-end: 16px;
+        --min-height: 60px;
+        --background: transparent;
+        --border-radius: 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+      
+      .custom-input-item:focus-within {
+        border-color: var(--ion-color-primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+      
+      .custom-input-item ion-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #6b7280;
+        margin-bottom: 4px;
+        position: static !important;
+        transform: none !important;
+      }
+      
+      .custom-input-item ion-input {
+        --padding-top: 8px;
+        --padding-bottom: 8px;
+        --padding-start: 0px;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      
+      .custom-input-item ion-input input {
+        padding-left: 0 !important;
+      }
+      
+      /* 佔位符樣式 */
+      .custom-input-item ion-input::part(native) {
+        color: #374151;
+      }
+      
+      .custom-input-item ion-input::part(native)::placeholder {
+        color: #9ca3af;
+        opacity: 1;
+      }
+      
+      /* 當輸入框獲得焦點時隱藏佔位符 */
+      .custom-input-item:focus-within ion-input::part(native)::placeholder {
+        opacity: 0.3;
+      }
+      
+      .error-message {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 5px;
+        margin-left: 16px;
+        display: none;
+      }
+      
+      .error-message.show {
+        display: block;
+      }
+      
+      .password-requirements {
+        margin-top: 5px;
+        margin-left: 16px;
+        color: #6c757d;
+      }
+      
+      .form-actions {
+        margin: 24px 0;
+      }
+      
+      .form-switch {
+        text-align: center;
+        margin-top: 16px;
+      }
+      
+      .auth-error {
+        margin: 16px 0;
+        padding: 12px;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        color: #721c24;
+      }
+      
+      .auth-error.show {
+        display: block !important;
+      }
+      
+      .loading-spinner {
+        width: 16px;
+        height: 16px;
+        margin-right: 8px;
+      }
+      
+      .password-strength {
+        margin-top: 5px;
+        margin-left: 16px;
+      }
+      
+      .password-strength-bar {
+        height: 4px;
+        background: #e9ecef;
+        border-radius: 2px;
+        margin-top: 4px;
+        overflow: hidden;
+      }
+      
+      .password-strength-fill {
+        height: 100%;
+        transition: width 0.3s ease, background-color 0.3s ease;
+      }
+      
+      .strength-weak { background-color: #dc3545; }
+      .strength-medium { background-color: #ffc107; }
+      .strength-strong { background-color: #28a745; }
+      
+      /* 輸入框聚焦效果 */
+      .form-group ion-item {
+        --border-radius: 8px;
+        --background: #f8f9fa;
+        margin-bottom: 8px;
+        transition: all 0.3s ease;
+      }
+      
+      .form-group ion-item.item-has-focus {
+        --background: #ffffff;
+        --border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      }
+      
+      .form-group ion-input {
+        --placeholder-color: #6c757d;
+        --color: #212529;
+      }
+      
+      /* 浮動標籤動畫 */
+      .form-group ion-label {
+        transition: all 0.3s ease;
+      }
     </style>
   </head>
   <body>
@@ -179,29 +329,150 @@
           </ion-toolbar>
         </ion-header>
         
-        <ion-content>
-          <ion-list>
-            <ion-item>
-              <ion-label position="stacked">電子郵件</ion-label>
-              <ion-input id="email-input" type="email" placeholder="輸入您的電子郵件"></ion-input>
-            </ion-item>
+        <ion-content class="ion-padding">
+          <!-- 認證表單容器 -->
+          <div id="auth-form-container">
+            <!-- 登錄表單 -->
+            <form id="login-form" style="display: block;">
+              <div class="form-group">
+                <ion-item lines="none" class="custom-input-item">
+                  <ion-label position="stacked">用戶名或郵件</ion-label>
+                  <ion-input 
+                    id="login-username" 
+                    type="text" 
+                    placeholder="請輸入用戶名或郵件"
+                    required 
+                    clearInput="true"
+                    autocomplete="username">
+                  </ion-input>
+                </ion-item>
+                <div id="login-username-error" class="error-message"></div>
+              </div>
+              
+              <div class="form-group">
+                <ion-item lines="none" class="custom-input-item">
+                  <ion-label position="stacked">密碼</ion-label>
+                  <ion-input 
+                    id="login-password" 
+                    type="password" 
+                    placeholder="請輸入密碼"
+                    required 
+                    clearInput="true"
+                    autocomplete="current-password">
+                  </ion-input>
+                </ion-item>
+                <div id="login-password-error" class="error-message"></div>
+              </div>
+              
+              <div class="form-actions">
+                <ion-button 
+                  id="login-submit-btn" 
+                  expand="block" 
+                  type="submit"
+                  color="primary">
+                  <ion-icon name="log-in" slot="start"></ion-icon>
+                  <span id="login-btn-text">登錄</span>
+                </ion-button>
+              </div>
+              
+              <div class="form-switch">
+                <ion-button 
+                  id="switch-to-register" 
+                  fill="clear" 
+                  expand="block">
+                  還沒有帳號？點擊註冊
+                </ion-button>
+              </div>
+            </form>
             
-            <ion-item>
-              <ion-label position="stacked">密碼</ion-label>
-              <ion-input id="password-input" type="password" placeholder="輸入您的密碼"></ion-input>
-            </ion-item>
+            <!-- 註冊表單 -->
+            <form id="register-form" style="display: none;">
+              <div class="form-group">
+                <ion-item lines="none" class="custom-input-item">
+                  <ion-label position="stacked">用戶名</ion-label>
+                  <ion-input 
+                    id="register-username" 
+                    type="text" 
+                    placeholder="請輸入用戶名（3-20個字符）"
+                    required 
+                    clearInput="true"
+                    autocomplete="username">
+                  </ion-input>
+                </ion-item>
+                <div id="register-username-error" class="error-message"></div>
+              </div>
+              
+              <div class="form-group">
+                <ion-item lines="none" class="custom-input-item">
+                  <ion-label position="stacked">電子郵件</ion-label>
+                  <ion-input 
+                    id="register-email" 
+                    type="email" 
+                    placeholder="請輸入電子郵件地址"
+                    required 
+                    clearInput="true"
+                    autocomplete="email">
+                  </ion-input>
+                </ion-item>
+                <div id="register-email-error" class="error-message"></div>
+              </div>
+              
+              <div class="form-group">
+                <ion-item lines="none" class="custom-input-item">
+                  <ion-label position="stacked">密碼</ion-label>
+                  <ion-input 
+                    id="register-password" 
+                    type="password" 
+                    placeholder="請輸入密碼（至少8個字符）"
+                    required 
+                    clearInput="true"
+                    autocomplete="new-password">
+                  </ion-input>
+                </ion-item>
+                <div id="register-password-error" class="error-message"></div>
+                <div class="password-requirements">
+                  <small>密碼要求：至少8個字符，包含大寫字母、小寫字母、數字</small>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <ion-item lines="none" class="custom-input-item">
+                  <ion-label position="stacked">確認密碼</ion-label>
+                  <ion-input 
+                    id="register-confirm-password" 
+                    type="password" 
+                    placeholder="請再次輸入密碼"
+                    required 
+                    clearInput="true"
+                    autocomplete="new-password">
+                  </ion-input>
+                </ion-item>
+                <div id="register-confirm-password-error" class="error-message"></div>
+              </div>
+              
+              <div class="form-actions">
+                <ion-button 
+                  id="register-submit-btn" 
+                  expand="block" 
+                  type="submit"
+                  color="success">
+                  <ion-icon name="person-add" slot="start"></ion-icon>
+                  <span id="register-btn-text">註冊</span>
+                </ion-button>
+              </div>
+              
+              <div class="form-switch">
+                <ion-button 
+                  id="switch-to-login" 
+                  fill="clear" 
+                  expand="block">
+                  已有帳號？點擊登錄
+                </ion-button>
+              </div>
+            </form>
             
-            <ion-item id="confirm-password-item" style="display: none;">
-              <ion-label position="stacked">確認密碼</ion-label>
-              <ion-input id="confirm-password-input" type="password" placeholder="再次輸入密碼"></ion-input>
-            </ion-item>
-          </ion-list>
-          
-          <div style="padding: 20px;">
-            <ion-button expand="block" id="auth-submit-btn" onclick="handleAuth()">登入</ion-button>
-            <ion-button expand="block" fill="clear" id="auth-toggle-btn" onclick="toggleAuthMode()">
-              還沒有帳號？註冊
-            </ion-button>
+            <!-- API 錯誤信息顯示 -->
+            <div id="auth-error" class="auth-error" style="display: none;"></div>
           </div>
         </ion-content>
       </ion-modal>
@@ -804,36 +1075,284 @@
         document.getElementById('logout-confirm-modal').dismiss();
       }
       
-      function toggleAuthMode() {
-        isLoginMode = !isLoginMode;
-        const title = document.getElementById('auth-title');
-        const submitBtn = document.getElementById('auth-submit-btn');
-        const toggleBtn = document.getElementById('auth-toggle-btn');
-        const confirmPasswordItem = document.getElementById('confirm-password-item');
-        
-        if (isLoginMode) {
-          title.textContent = '登入';
-          submitBtn.textContent = '登入';
-          toggleBtn.textContent = '還沒有帳號？註冊';
-          confirmPasswordItem.style.display = 'none';
-        } else {
-          title.textContent = '註冊';
-          submitBtn.textContent = '註冊';
-          toggleBtn.textContent = '已有帳號？登入';
-          confirmPasswordItem.style.display = 'block';
+      // 表單驗證工具函數
+      function validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+      }
+      
+      function validatePassword(password) {
+        // 至少8個字符，包含大寫字母、小寫字母、數字
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+        return passwordRegex.test(password);
+      }
+      
+      function validateUsername(username) {
+        // 用戶名：3-20個字符，只能包含字母、數字、下劃線
+        const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+        return usernameRegex.test(username);
+      }
+      
+      function showFieldError(fieldId, message) {
+        const errorElement = document.getElementById(fieldId + '-error');
+        if (errorElement) {
+          errorElement.textContent = message;
+          errorElement.classList.add('show');
         }
       }
       
-      function handleAuth() {
-        // 簡化的認證處理
-        const email = document.getElementById('email-input').value;
-        if (email) {
-          currentUser = { email };
+      function hideFieldError(fieldId) {
+        const errorElement = document.getElementById(fieldId + '-error');
+        if (errorElement) {
+          errorElement.classList.remove('show');
+        }
+      }
+      
+      function showAuthError(message) {
+        const errorElement = document.getElementById('auth-error');
+        errorElement.innerHTML = `
+          <div style="display: flex; align-items: center;">
+            <ion-icon name="alert-circle" style="margin-right: 8px; color: #dc3545;"></ion-icon>
+            <span>${message}</span>
+          </div>
+        `;
+        errorElement.classList.add('show');
+        
+        // 5秒後自動隱藏
+        setTimeout(() => {
+          errorElement.classList.remove('show');
+        }, 5000);
+      }
+      
+      function hideAuthError() {
+        const errorElement = document.getElementById('auth-error');
+        errorElement.classList.remove('show');
+      }
+      
+      // 表單驗證函數
+      function validateLoginForm() {
+        let isValid = true;
+        
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+        
+        // 清除之前的錯誤
+        hideFieldError('login-username');
+        hideFieldError('login-password');
+        hideAuthError();
+        
+        // 驗證用戶名/郵件
+        if (!username) {
+          showFieldError('login-username', '請輸入用戶名或郵件');
+          isValid = false;
+        } else if (username.length < 3) {
+          showFieldError('login-username', '用戶名至少3個字符');
+          isValid = false;
+        }
+        
+        // 驗證密碼
+        if (!password) {
+          showFieldError('login-password', '請輸入密碼');
+          isValid = false;
+        } else if (password.length < 6) {
+          showFieldError('login-password', '密碼至少6個字符');
+          isValid = false;
+        }
+        
+        return isValid;
+      }
+      
+      function validateRegisterForm() {
+        let isValid = true;
+        
+        const username = document.getElementById('register-username').value.trim();
+        const email = document.getElementById('register-email').value.trim();
+        const password = document.getElementById('register-password').value;
+        const confirmPassword = document.getElementById('register-confirm-password').value;
+        
+        // 清除之前的錯誤
+        hideFieldError('register-username');
+        hideFieldError('register-email');
+        hideFieldError('register-password');
+        hideFieldError('register-confirm-password');
+        hideAuthError();
+        
+        // 驗證用戶名
+        if (!username) {
+          showFieldError('register-username', '請輸入用戶名');
+          isValid = false;
+        } else if (!validateUsername(username)) {
+          showFieldError('register-username', '用戶名：3-20個字符，只能包含字母、數字、下劃線');
+          isValid = false;
+        }
+        
+        // 驗證郵件
+        if (!email) {
+          showFieldError('register-email', '請輸入電子郵件');
+          isValid = false;
+        } else if (!validateEmail(email)) {
+          showFieldError('register-email', '請輸入有效的電子郵件地址');
+          isValid = false;
+        }
+        
+        // 驗證密碼
+        if (!password) {
+          showFieldError('register-password', '請輸入密碼');
+          isValid = false;
+        } else if (!validatePassword(password)) {
+          showFieldError('register-password', '密碼需至少8位，包含大寫、小寫字母和數字');
+          isValid = false;
+        }
+        
+        // 驗證確認密碼
+        if (!confirmPassword) {
+          showFieldError('register-confirm-password', '請確認密碼');
+          isValid = false;
+        } else if (password !== confirmPassword) {
+          showFieldError('register-confirm-password', '兩次輸入的密碼不一致');
+          isValid = false;
+        }
+        
+        return isValid;
+      }
+      
+      // 切換表單模式
+      function switchAuthMode(mode) {
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const title = document.getElementById('auth-title');
+        
+        if (mode === 'login') {
+          loginForm.style.display = 'block';
+          registerForm.style.display = 'none';
+          title.textContent = '登錄';
+        } else {
+          loginForm.style.display = 'none';
+          registerForm.style.display = 'block';
+          title.textContent = '註冊';
+        }
+        
+        // 清除所有錯誤信息
+        hideAuthError();
+        hideFieldError('login-username');
+        hideFieldError('login-password');
+        hideFieldError('register-username');
+        hideFieldError('register-email');
+        hideFieldError('register-password');
+        hideFieldError('register-confirm-password');
+      }
+      
+      // 處理登錄
+      async function handleLogin(event) {
+        event.preventDefault();
+        
+        if (!validateLoginForm()) {
+          return;
+        }
+        
+        const loginBtn = document.getElementById('login-submit-btn');
+        const btnText = document.getElementById('login-btn-text');
+        
+        try {
+          // 顯示載入狀態
+          loginBtn.disabled = true;
+          btnText.innerHTML = '<ion-spinner class="loading-spinner"></ion-spinner>登錄中...';
+          
+          const username = document.getElementById('login-username').value.trim();
+          const password = document.getElementById('login-password').value;
+          
+          // 模擬API調用（稍後替換為真實API）
+          await simulateLogin(username, password);
+          
+          // 登錄成功
+          currentUser = { username, email: username.includes('@') ? username : `${username}@example.com` };
           document.getElementById('auth-btn').textContent = '登出';
           closeAuthModal();
+          
+          // 清空表單
+          document.getElementById('login-form').reset();
+          
+        } catch (error) {
+          showAuthError(error.message);
+        } finally {
+          // 恢復按鈕狀態
+          loginBtn.disabled = false;
+          btnText.textContent = '登錄';
         }
       }
       
+      // 處理註冊
+      async function handleRegister(event) {
+        event.preventDefault();
+        
+        if (!validateRegisterForm()) {
+          return;
+        }
+        
+        const registerBtn = document.getElementById('register-submit-btn');
+        const btnText = document.getElementById('register-btn-text');
+        
+        try {
+          // 顯示載入狀態
+          registerBtn.disabled = true;
+          btnText.innerHTML = '<ion-spinner class="loading-spinner"></ion-spinner>註冊中...';
+          
+          const username = document.getElementById('register-username').value.trim();
+          const email = document.getElementById('register-email').value.trim();
+          const password = document.getElementById('register-password').value;
+          
+          // 模擬API調用（稍後替換為真實API）
+          await simulateRegister(username, email, password);
+          
+          // 註冊成功，自動登錄
+          currentUser = { username, email };
+          document.getElementById('auth-btn').textContent = '登出';
+          closeAuthModal();
+          
+          // 清空表單
+          document.getElementById('register-form').reset();
+          
+        } catch (error) {
+          showAuthError(error.message);
+        } finally {
+          // 恢復按鈕狀態
+          registerBtn.disabled = false;
+          btnText.textContent = '註冊';
+        }
+      }
+      
+      // 模擬登錄API（稍後替換）
+      async function simulateLogin(username, password) {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            // 模擬API響應 - 演示用戶：demo/demo123
+            if (username === 'demo' && password === 'demo123') {
+              resolve({ success: true, user: { username, email: 'demo@example.com' } });
+            } else if (username === 'admin' && password === 'admin123') {
+              resolve({ success: true, user: { username, email: 'admin@example.com' } });
+            } else {
+              reject(new Error('用戶名或密碼錯誤'));
+            }
+          }, 1000);
+        });
+      }
+      
+      // 模擬註冊API（稍後替換）
+      async function simulateRegister(username, email, password) {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            // 模擬註冊驗證
+            if (username === 'existing') {
+              reject(new Error('用戶名已存在'));
+            } else if (email === 'existing@example.com') {
+              reject(new Error('郵件地址已被註冊'));
+            } else {
+              resolve({ success: true, user: { username, email } });
+            }
+          }, 1500);
+        });
+      }
+
       function confirmLogout() {
         currentUser = null;
         document.getElementById('auth-btn').textContent = '登入';
@@ -859,6 +1378,99 @@
             openAuthModal();
           }
         });
+        
+        // 設置認證表單事件監聽器
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const switchToRegister = document.getElementById('switch-to-register');
+        const switchToLogin = document.getElementById('switch-to-login');
+        
+        // 表單提交事件
+        if (loginForm) {
+          loginForm.addEventListener('submit', handleLogin);
+        }
+        
+        if (registerForm) {
+          registerForm.addEventListener('submit', handleRegister);
+        }
+        
+        // 表單切換事件
+        if (switchToRegister) {
+          switchToRegister.addEventListener('click', () => switchAuthMode('register'));
+        }
+        
+        if (switchToLogin) {
+          switchToLogin.addEventListener('click', () => switchAuthMode('login'));
+        }
+        
+        // 設置輸入框聚焦效果
+        const allInputs = document.querySelectorAll('#auth-form-container ion-input');
+        allInputs.forEach(input => {
+          const item = input.closest('ion-item');
+          
+          // 添加聚焦效果
+          input.addEventListener('ionFocus', () => {
+            item.classList.add('item-has-focus');
+            // 清除佔位符（通過設置為空）
+            const placeholder = input.getAttribute('placeholder');
+            if (placeholder) {
+              input.setAttribute('data-original-placeholder', placeholder);
+              input.setAttribute('placeholder', '');
+            }
+          });
+          
+          // 移除聚焦效果
+          input.addEventListener('ionBlur', () => {
+            item.classList.remove('item-has-focus');
+            // 如果輸入框為空，恢復佔位符
+            const value = input.value?.trim();
+            if (!value) {
+              const originalPlaceholder = input.getAttribute('data-original-placeholder');
+              if (originalPlaceholder) {
+                input.setAttribute('placeholder', originalPlaceholder);
+              }
+            }
+          });
+        });
+        
+        // 實時驗證事件
+        const loginUsername = document.getElementById('login-username');
+        if (loginUsername) {
+          loginUsername.addEventListener('ionBlur', () => {
+            const value = loginUsername.value.trim();
+            if (value && value.length < 3) {
+              showFieldError('login-username', '用戶名至少3個字符');
+            } else {
+              hideFieldError('login-username');
+            }
+          });
+        }
+        
+        const registerEmail = document.getElementById('register-email');
+        if (registerEmail) {
+          registerEmail.addEventListener('ionBlur', () => {
+            const value = registerEmail.value.trim();
+            if (value && !validateEmail(value)) {
+              showFieldError('register-email', '請輸入有效的電子郵件地址');
+            } else {
+              hideFieldError('register-email');
+            }
+          });
+        }
+        
+        const registerPassword = document.getElementById('register-password');
+        if (registerPassword) {
+          registerPassword.addEventListener('ionInput', () => {
+            const value = registerPassword.value;
+            if (value) {
+              if (!validatePassword(value)) {
+                showFieldError('register-password', '密碼需至少8位，包含大寫、小寫字母和數字');
+              } else {
+                hideFieldError('register-password');
+              }
+            }
+          });
+        }
         
         // 開始載入數據
         loadData();
