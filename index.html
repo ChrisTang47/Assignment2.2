@@ -1031,7 +1031,6 @@
       // 更新分頁信息
       function updatePaginationInfo() {
         const info = document.getElementById('pagination-info');
-        const loadMoreBtn = document.getElementById('load-more-btn');
         const noMoreData = document.getElementById('no-more-data');
         const pagination = document.getElementById('pagination-container');
         
@@ -1056,13 +1055,9 @@
         pagination.style.display = 'block';
         
         if (hasMoreData) {
-          // Step 24: 根據無限滾動狀態決定是否顯示按鈕
-          loadMoreBtn.style.display = isInfiniteScrollEnabled ? 'none' : 'block';
-          loadMoreBtn.disabled = false;
           noMoreData.style.display = 'none';
-          console.log('顯示載入更多按鈕');
+          console.log('還有更多數據，無限滾動已啟用');
         } else {
-          loadMoreBtn.style.display = 'none';
           noMoreData.style.display = 'block';
           noMoreData.innerHTML = `
             <ion-icon name="checkmark-circle" style="color: #28a745; margin-right: 8px;"></ion-icon>
@@ -1182,7 +1177,7 @@
               throw new Error('網絡連接不可用');
             }
             
-            await loadMoreData();
+            await loadMoreDataInfinite();
             return; // 成功則退出
             
           } catch (error) {
@@ -1202,17 +1197,13 @@
       
       // 手動重試載入更多數據
       async function retryLoadMore() {
-        const loadMoreError = document.getElementById('loadMoreError');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const loadMoreError = document.getElementById('load-more-error');
         
         try {
           loadMoreError.style.display = 'none';
           
-          // 顯示重試狀態
-          loadMoreBtn.disabled = true;
-          loadMoreBtn.innerHTML = '<ion-spinner name="crescent"></ion-spinner> 重試中...';
-          
-          await loadMoreData();
+          console.log('手動重試載入更多數據');
+          await loadMoreDataInfinite();
           
         } catch (error) {
           console.error('手動重試失敗:', error);
@@ -1220,7 +1211,7 @@
           // 顯示重試失敗信息
           loadMoreError.style.display = 'block';
           loadMoreError.innerHTML = `
-            <div style="color: #dc3545; padding: 8px 0;">
+            <div style="color: #dc3545; padding: 8px; text-align: center;">
               <ion-icon name="alert-circle" style="margin-right: 4px;"></ion-icon>
               重試失敗: ${error.message}
               <ion-button size="small" fill="clear" onclick="autoRetryLoadMore()" style="margin-left: 10px;">
@@ -1229,10 +1220,6 @@
               </ion-button>
             </div>
           `;
-          
-        } finally {
-          loadMoreBtn.disabled = false;
-          loadMoreBtn.innerHTML = '載入更多';
         }
       }
       
@@ -1261,142 +1248,6 @@
           console.log('🔄 頁面內容太少，自動觸發載入更多數據');
           autoLoadCounter++; // 增加計數器
           loadMoreDataInfinite();
-        }
-      }
-      
-      // 載入更多數據
-      async function loadMoreData() {
-        if (!hasMoreData) {
-          console.log('沒有更多數據可載入');
-          return;
-        }
-        
-        const loadMoreBtn = document.getElementById('load-more-btn');
-        const loadMoreError = document.getElementById('load-more-error');
-        
-        try {
-          // 顯示載入狀態
-          loadMoreBtn.disabled = true;
-          loadMoreBtn.innerHTML = `
-            <ion-spinner name="crescent" style="width: 16px; height: 16px; margin-right: 8px;"></ion-spinner>
-            載入中...
-          `;
-          loadMoreError.style.display = 'none';
-          
-          console.log(`載入第 ${currentPage + 1} 頁數據，搜索條件:`, currentSearchParams);
-          currentPage++;
-          
-          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage, currentSearchParams);
-          
-          if (result.items.length === 0) {
-            // 沒有更多數據
-            hasMoreData = false;
-            updatePaginationInfo();
-            return;
-          }
-          
-          // 合併新數據
-          allItems = [...allItems, ...result.items];
-          hasMoreData = result.hasMore;
-          filteredItems = [...allItems];
-          
-          console.log(`成功載入 ${result.items.length} 項新數據，總計 ${allItems.length} 項`);
-          
-          // 重置錯誤統計
-          resetErrorStats();
-          
-          // 顯示新數據（追加到現有列表）
-          displayItems(result.items);
-          
-        } catch (error) {
-          console.error('載入更多失敗:', error);
-          
-          // 回退頁碼（因為請求失敗）
-          currentPage--;
-          
-          // 更新錯誤統計
-          updateErrorStats(error);
-          
-          // 分類錯誤類型並顯示相應信息
-          let errorMessage = '載入失敗';
-          let showRetryOption = true;
-          
-          if (error.message.includes('HTTP')) {
-            if (error.message.includes('404')) {
-              errorMessage = '頁面不存在，可能已載入所有數據';
-              hasMoreData = false;
-              showRetryOption = false;
-            } else if (error.message.includes('500')) {
-              errorMessage = '服務器錯誤，請稍後重試';
-            } else if (error.message.includes('429')) {
-              errorMessage = '請求過於頻繁，請稍後重試';
-            } else {
-              errorMessage = `網絡錯誤 (${error.message})`;
-            }
-          } else if (error.message.includes('Failed to fetch')) {
-            errorMessage = '網絡連接失敗，請檢查網絡';
-          } else if (error.message.includes('API 測試錯誤')) {
-            errorMessage = '載入失敗 (測試環境隨機錯誤)';
-          } else {
-            errorMessage = `載入失敗: ${error.message}`;
-          }
-          
-          // 檢查是否需要暫停重試
-          const shouldPause = shouldPauseRetry();
-          
-          // 顯示錯誤信息和重試選項
-          loadMoreError.style.display = 'block';
-          loadMoreError.innerHTML = `
-            <div style="padding: 12px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; margin: 8px 0;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                <span style="color: #dc3545; font-weight: 500;">
-                  <ion-icon name="alert-circle" style="margin-right: 4px;"></ion-icon>
-                  ${errorMessage}
-                </span>
-                ${showRetryOption && !shouldPause ? `
-                  <ion-button size="small" fill="clear" onclick="retryLoadMore()" style="margin-left: 10px;">
-                    <ion-icon name="refresh" slot="start"></ion-icon>
-                    重試
-                  </ion-button>
-                ` : ''}
-              </div>
-              
-              ${errorStats.consecutiveErrors > 1 ? `
-                <div style="font-size: 12px; color: #6c757d; margin-top: 4px;">
-                  <ion-icon name="warning" style="margin-right: 4px; font-size: 14px;"></ion-icon>
-                  連續錯誤 ${errorStats.consecutiveErrors} 次
-                  ${shouldPause ? ' - 暫停自動重試' : ''}
-                </div>
-              ` : ''}
-              
-              ${shouldPause ? `
-                <div style="margin-top: 8px;">
-                  <ion-button size="small" fill="outline" onclick="resetErrorStats(); retryLoadMore();">
-                    <ion-icon name="refresh" slot="start"></ion-icon>
-                    強制重試
-                  </ion-button>
-                </div>
-              ` : ''}
-            </div>
-          `;
-          
-          // 如果沒有更多數據，更新分頁信息
-          if (!showRetryOption) {
-            updatePaginationInfo();
-          }
-          
-          // 5秒後自動隱藏錯誤信息（如果有重試選項則延長到8秒）
-          const hideDelay = showRetryOption ? 8000 : 5000;
-          setTimeout(() => {
-            if (loadMoreError.style.display === 'block') {
-              loadMoreError.style.display = 'none';
-            }
-          }, hideDelay);
-          
-        } finally {
-          // 恢復按鈕狀態
-          loadMoreBtn.disabled = false;
-          loadMoreBtn.innerHTML = '載入更多';
         }
       }
       
