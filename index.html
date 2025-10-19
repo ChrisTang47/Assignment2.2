@@ -586,6 +586,191 @@
       #auth-modal ion-input:focus-within {
         --placeholder-color: #666;
       }
+
+      /* 成功訊息 Toast 樣式 */
+      .toast-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--success-gradient);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        z-index: 10000;
+        transform: translateX(400px);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .toast-message.show {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      .toast-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        font-size: 16px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .toast-icon {
+        font-size: 24px;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      /* Toast 動畫效果 */
+      @keyframes slideInRight {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideOutRight {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+
+      .toast-message.slide-in {
+        animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+
+      .toast-message.slide-out {
+        animation: slideOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+
+      /* 響應式設計 */
+      @media (max-width: 480px) {
+        .toast-message {
+          top: 10px;
+          right: 10px;
+          left: 10px;
+          transform: translateY(-100px);
+        }
+
+        .toast-message.show {
+          transform: translateY(0);
+        }
+
+        @keyframes slideInRight {
+          from {
+            transform: translateY(-100px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes slideOutRight {
+          from {
+            transform: translateY(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateY(-100px);
+            opacity: 0;
+          }
+        }
+      }
+
+      /* 登出確認模態框樣式 */
+      #logout-confirm-modal {
+        --width: 400px;
+        --height: auto;
+        --border-radius: 16px;
+        --background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+      }
+
+      .logout-confirm-content {
+        max-width: 320px;
+        width: 100%;
+      }
+
+      .logout-icon {
+        font-size: 64px;
+        color: #ff6b6b;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .logout-confirm-content h2 {
+        color: #2c3e50;
+        font-weight: bold;
+        margin: 0 0 8px 0;
+        font-size: 1.5em;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* 登出確認按鈕樣式 */
+      #logout-confirm-modal ion-button {
+        --border-radius: 12px;
+        font-weight: 600;
+        text-transform: none;
+        min-height: 48px;
+        margin: 0;
+      }
+
+      .logout-buttons {
+        display: flex !important;
+        gap: 16px !important;
+        width: 100% !important;
+        max-width: 300px !important;
+        justify-content: space-between;
+      }
+
+      .logout-buttons ion-button {
+        flex: 1 !important;
+        margin: 0 !important;
+      }
+
+      #logout-confirm-modal ion-toolbar {
+        --background: var(--primary-gradient);
+        --color: white;
+      }
+
+      #logout-confirm-modal ion-title {
+        font-weight: bold;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      /* 響應式設計 */
+      @media (max-width: 480px) {
+        #logout-confirm-modal {
+          --width: 90%;
+        }
+
+        .logout-confirm-content {
+          max-width: 280px;
+        }
+
+        .logout-icon {
+          font-size: 48px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -594,10 +779,17 @@
         <ion-toolbar>
           <ion-title>瑜伽動作清單</ion-title>
           <!-- Assignment 2.2 認證按鈕 -->
-          <ion-button id="auth-btn" fill="clear" slot="end">
-            <ion-icon name="person-outline"></ion-icon>
-            登入
-          </ion-button>
+          <div slot="end" style="display: flex; gap: 8px; align-items: center;">
+            <ion-button id="auth-btn" fill="clear">
+              <ion-icon name="person-outline"></ion-icon>
+              登入
+            </ion-button>
+            <!-- 登出按鈕，初始隱藏 -->
+            <ion-button id="logout-btn" fill="clear" color="danger" style="display: none;" onclick="performLogout()">
+              <ion-icon name="log-out-outline"></ion-icon>
+              登出
+            </ion-button>
+          </div>
         </ion-toolbar>
         <ion-searchbar placeholder="搜尋..."></ion-searchbar>
         <ion-item>
@@ -667,6 +859,51 @@
         </div>
       </ion-content>
     </ion-app>
+
+    <!-- Assignment 2.2 成功訊息 Toast -->
+    <div id="success-toast" class="toast-message">
+      <div class="toast-content">
+        <ion-icon name="checkmark-circle" class="toast-icon"></ion-icon>
+        <span id="toast-text">操作成功！</span>
+      </div>
+    </div>
+
+    <!-- Assignment 2.2 確認登出模態框 -->
+    <ion-modal id="logout-confirm-modal">
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>確認登出</ion-title>
+          <ion-button slot="end" fill="clear" onclick="closeLogoutModal()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content style="padding: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+        <div class="logout-confirm-content">
+          <ion-icon name="log-out-outline" class="logout-icon"></ion-icon>
+          <h2 id="logout-username">用戶名</h2>
+          <p style="color: #666; margin: 16px 0 32px 0;">確定要登出嗎？</p>
+          <div class="logout-buttons" style="display: flex; gap: 16px; width: 100%; max-width: 300px;">
+            <ion-button 
+              fill="outline" 
+              expand="block" 
+              onclick="closeLogoutModal()"
+              style="--color: #666; --border-color: #ddd; flex: 1;"
+            >
+              取消
+            </ion-button>
+            <ion-button 
+              fill="solid" 
+              expand="block" 
+              onclick="confirmLogout()"
+              style="--background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); --color: white; flex: 1;"
+            >
+              確定
+            </ion-button>
+          </div>
+        </div>
+      </ion-content>
+    </ion-modal>
 
     <!-- Assignment 2.2 認證模態框 -->
     <ion-modal id="auth-modal">
@@ -738,6 +975,7 @@
       const nextBtn = document.getElementById('next-btn');
       const authBtn = document.getElementById('auth-btn');
       const authModal = document.getElementById('auth-modal');
+      const logoutModal = document.getElementById('logout-confirm-modal');
 
       // 初始化應用
       async function initializeApp() {
@@ -1004,7 +1242,7 @@
         // 收藏點擊事件
         bookmarkBtn.addEventListener('click', async () => {
           if (!currentUser) {
-            alert('請先登入才能使用收藏功能');
+            showToast('請先登入才能使用收藏功能', 'error');
             return;
           }
           
@@ -1037,18 +1275,69 @@
         }
       }
 
+      // Assignment 2.2 Toast 訊息功能
+      function showToast(message, type = 'success') {
+        const toast = document.getElementById('success-toast');
+        const toastText = document.getElementById('toast-text');
+        const toastIcon = toast.querySelector('.toast-icon');
+        
+        // 設置訊息內容
+        toastText.textContent = message;
+        
+        // 根據類型設置圖標
+        if (type === 'success') {
+          toastIcon.name = 'checkmark-circle';
+          toast.style.background = 'var(--success-gradient)';
+        } else if (type === 'error') {
+          toastIcon.name = 'close-circle';
+          toast.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)';
+        }
+        
+        // 顯示動畫
+        toast.classList.add('show', 'slide-in');
+        
+        // 3秒後自動隱藏
+        setTimeout(() => {
+          toast.classList.remove('slide-in');
+          toast.classList.add('slide-out');
+          
+          // 動畫完成後移除類別
+          setTimeout(() => {
+            toast.classList.remove('show', 'slide-out');
+          }, 400);
+        }, 3000);
+      }
+
       // Assignment 2.2 認證功能
       function openAuthModal() {
         if (currentUser) {
-          // 已登入，顯示登出選項
-          if (confirm(`${currentUser.username}，確定要登出嗎？`)) {
-            logout();
-          }
+          // 已登入，顯示美觀的登出確認對話框
+          openLogoutModal();
         } else {
           // 未登入，顯示登入模態框
           authModal.present();
         }
       }
+
+      // 登出確認對話框功能
+      function openLogoutModal() {
+        const logoutUsername = document.getElementById('logout-username');
+        logoutUsername.textContent = currentUser.username;
+        logoutModal.present();
+      }
+
+      function closeLogoutModal() {
+        logoutModal.dismiss();
+      }
+
+      function confirmLogout() {
+        closeLogoutModal();
+        logout();
+      }
+
+      // 將函數設為全局可訪問
+      window.closeLogoutModal = closeLogoutModal;
+      window.confirmLogout = confirmLogout;
 
       function closeAuthModal() {
         authModal.dismiss();
@@ -1094,13 +1383,14 @@
           await loadBookmarks();
           closeAuthModal();
           
-          alert(isLoginMode ? '登入成功！' : '註冊成功！');
+          // 顯示美觀的成功訊息
+          showToast(isLoginMode ? '登入成功！' : '註冊成功！', 'success');
           
           // 重新顯示項目以更新收藏狀態
           filterAndDisplayItems();
           
         } catch (error) {
-          alert('認證失敗：' + error.message);
+          showToast('認證失敗：' + error.message, 'error');
         }
       }
 
@@ -1116,7 +1406,7 @@
         // 重新顯示項目以移除收藏狀態
         filterAndDisplayItems();
         
-        alert('已登出');
+        showToast('已成功登出', 'success');
       }
 
       // 初始化應用
