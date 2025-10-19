@@ -307,15 +307,6 @@
               </ion-button>
             </div>
             
-            <div class="filter-item">
-              <label>每頁顯示</label>
-              <ion-select id="limit-select" value="5">
-                <ion-select-option value="5">5 項</ion-select-option>
-                <ion-select-option value="10">10 項</ion-select-option>
-                <ion-select-option value="20">20 項</ion-select-option>
-                <ion-select-option value="50">50 項</ion-select-option>
-              </ion-select>
-            </div>
           </div>
         </div>
 
@@ -723,11 +714,17 @@
       }
       
       // Step 23: 收藏過濾功能
-      function toggleBookmarkFilter() {
+      async function toggleBookmarkFilter() {
         // 檢查用戶是否已登入
         if (!currentUser || !currentUser.id) {
           showAlert('請先登入會員才能使用收藏過濾功能！', 'warning');
           return;
+        }
+        
+        // 確保用戶數據已載入
+        if (!bookmarks) {
+          console.log('正在載入用戶收藏數據...');
+          await initializeUserData();
         }
         
         // 檢查是否有收藏數據
@@ -770,8 +767,9 @@
         console.log('   當前用戶:', currentUser);
         
         if (currentSearchParams.showBookmarkedOnly) {
+          console.log('   完整收藏列表:', bookmarks);
           console.log('   收藏ID列表:', bookmarks.map(b => b.id));
-          console.log('   項目ID列表(前5個):', allItems.slice(0,5).map(item => item.id));
+          console.log('   項目ID列表(前5個):', allItems.slice(0,5).map(item => ({id: item.id, title: item.title})));
           
           // 詳細匹配檢查 - 顯示收藏的項目
           const matchedItems = [];
@@ -788,6 +786,7 @@
           
           if (matchedItems.length === 0) {
             console.warn('⚠️ 沒有找到匹配的收藏項目！');
+            console.warn('⚠️ 調試信息: 檢查 bookmarks 和 allItems 的 ID 類型是否一致');
           }
         }
         
@@ -799,6 +798,10 @@
         
         if (currentSearchParams.showBookmarkedOnly && itemsToDisplay.length === 0) {
           console.warn('⚠️ 過濾後沒有任何項目顯示！');
+          console.warn('   這可能是因為:');
+          console.warn('   1. 沒有真正收藏任何項目');
+          console.warn('   2. 收藏數據的ID與allItems的ID不匹配');
+          console.warn('   3. 收藏數據結構錯誤');
         }
         
         // 更新全局變量 filteredItems 以確保後續操作正確
@@ -912,7 +915,7 @@
           console.log(`🔄 嘗試載入第 ${nextPage} 頁數據，當前總計: ${allItems.length} 項`);
           console.log('📋 搜索條件:', currentSearchParams);
           
-          const result = await fetchFromAPIWithRetry(nextPage, itemsPerPage, currentSearchParams);
+          const result = await fetchFromAPIWithRetry(nextPage, 5, currentSearchParams);
           
           if (!result.items || result.items.length === 0) {
             // 沒有更多數據
@@ -1149,7 +1152,7 @@
         console.log(`載入參數: page=${currentPage}, limit=${itemsPerPage}, 搜索條件:`, currentSearchParams);
         
         try {
-          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage, currentSearchParams);
+          const result = await fetchFromAPIWithRetry(currentPage, 5, currentSearchParams);
           
           if (!result.items || result.items.length === 0) {
             showError('沒有找到瑜伽動作數據');
@@ -2429,24 +2432,6 @@
         document.getElementById('category-select').addEventListener('ionChange', performAPISearch);
         document.getElementById('sort-select').addEventListener('ionChange', performAPISearch);
         document.getElementById('order-select').addEventListener('ionChange', performAPISearch);
-        
-        // 延遲初始化下拉選單事件監聽器
-        setTimeout(() => {
-          const limitSelect = document.getElementById('limit-select');
-          if (limitSelect) {
-            // 同步下拉選單值
-            if (limitSelect.value && parseInt(limitSelect.value) !== itemsPerPage) {
-              itemsPerPage = parseInt(limitSelect.value) || 5;
-              console.log('📝 從選單同步 itemsPerPage =', itemsPerPage);
-            }
-            
-            limitSelect.addEventListener('ionChange', (e) => {
-              itemsPerPage = parseInt(e.detail.value);
-              console.log('itemsPerPage 已更新為:', itemsPerPage);
-              loadData(); // 重新載入數據
-            });
-          }
-        }, 200);
         
         document.getElementById('auth-btn').addEventListener('click', () => {
           if (currentUser) {
