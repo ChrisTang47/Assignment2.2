@@ -352,6 +352,19 @@
             <span>載入失敗，請向下滾動重試</span>
           </div>
           
+          <!-- 測試無限滾動控制 -->
+          <div style="padding: 15px; text-align: center; border: 1px dashed #ccc; margin: 10px 0;">
+            <p style="margin: 5px 0; color: #666; font-size: 12px;">無限滾動測試工具</p>
+            <ion-button size="small" fill="outline" onclick="testInfiniteScroll()">
+              <ion-icon name="arrow-down" slot="start"></ion-icon>
+              手動載入更多
+            </ion-button>
+            <ion-button size="small" fill="outline" onclick="debugScrollInfo()" style="margin-left: 10px;">
+              <ion-icon name="information-circle" slot="start"></ion-icon>
+              滾動狀態
+            </ion-button>
+          </div>
+          
           <!-- 無更多數據指示器 -->
           <div id="no-more-data" style="display: none; color: #718096; margin-top: 15px; text-align: center; padding: 10px;">
             <ion-icon name="checkmark-circle-outline" style="margin-right: 5px;"></ion-icon>
@@ -817,32 +830,57 @@
         const windowHeight = window.innerHeight;
         const documentHeight = document.documentElement.scrollHeight;
         
-        console.log('滾動檢測:', {
-          scrollTop,
-          windowHeight, 
+        console.log('📜 滾動檢測:', {
+          scrollTop: Math.round(scrollTop),
+          windowHeight,
           documentHeight,
+          threshold: CONFIG.INFINITE_SCROLL_THRESHOLD,
+          triggerPoint: documentHeight - CONFIG.INFINITE_SCROLL_THRESHOLD,
+          currentPage,
+          allItemsLength: allItems.length,
           isLoadingMore,
           hasMoreData,
           isInfiniteScrollEnabled,
           showBookmarkedOnly: currentSearchParams.showBookmarkedOnly
         });
         
-        // 如果正在加載或沒有更多數據，則不執行
-        if (isLoadingMore || !hasMoreData || !isInfiniteScrollEnabled) {
-          console.log('無限滾動被阻止:', { isLoadingMore, hasMoreData, isInfiniteScrollEnabled });
+        // 如果正在加載或禁用無限滾動，則不執行
+        if (isLoadingMore || !isInfiniteScrollEnabled) {
+          console.log('⚠️ 無限滾動被阻止:', { isLoadingMore, isInfiniteScrollEnabled });
           return;
         }
         
+        // 強制檢查是否有更多數據（基於當前頁面和項目數量）
+        const totalItemsExpected = currentPage * itemsPerPage;
+        const shouldHaveMoreData = allItems.length >= totalItemsExpected;
+        
+        console.log('🔍 數據狀態檢查:', {
+          allItemsLength: allItems.length,
+          totalItemsExpected,
+          shouldHaveMoreData,
+          hasMoreData,
+          currentPage,
+          itemsPerPage
+        });
+        
         // 檢查是否接近頁面底部（距離底部200px時觸發）
         if (scrollTop + windowHeight >= documentHeight - CONFIG.INFINITE_SCROLL_THRESHOLD) {
-          console.log('✅ 觸發無限滾動載入');
-          autoLoadCounter = 0; // 用戶滾動觸發的載入，重置計數器
-          loadMoreDataInfinite();
+          console.log('✅ 觸發無限滾動載入條件達成');
+          
+          // 如果數據量足夠，嘗試加載更多
+          if (shouldHaveMoreData || hasMoreData) {
+            console.log('🚀 開始無限滾動載入');
+            autoLoadCounter = 0; // 用戶滾動觸發的載入，重置計數器
+            loadMoreDataInfinite();
+          } else {
+            console.log('📄 已到達數據末尾，無更多內容可載入');
+          }
         }
       }
       
       async function loadMoreDataInfinite() {
-        if (isLoadingMore || !hasMoreData) {
+        if (isLoadingMore) {
+          console.log('⚠️ 正在載入中，跳過重複請求');
           return;
         }
         
@@ -852,6 +890,7 @@
           return;
         }
         
+        console.log('🚀 開始無限滾動載入數據');
         isLoadingMore = true;
         const infiniteLoading = document.getElementById('infinite-scroll-loading');
         const loadMoreError = document.getElementById('load-more-error');
@@ -861,24 +900,30 @@
           infiniteLoading.style.display = 'block';
           loadMoreError.style.display = 'none';
           
-          console.log(`無限滾動載入第 ${currentPage + 1} 頁數據，搜索條件:`, currentSearchParams);
-          currentPage++;
+          const nextPage = currentPage + 1;
+          console.log(`🔄 嘗試載入第 ${nextPage} 頁數據，當前總計: ${allItems.length} 項`);
+          console.log('📋 搜索條件:', currentSearchParams);
           
-          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage, currentSearchParams);
+          const result = await fetchFromAPIWithRetry(nextPage, itemsPerPage, currentSearchParams);
           
-          if (result.items.length === 0) {
+          if (!result.items || result.items.length === 0) {
             // 沒有更多數據
+            console.log('📄 沒有更多數據可載入');
             hasMoreData = false;
             updatePaginationInfo();
             return;
           }
           
+          // 更新頁數
+          currentPage = nextPage;
+          
           // 合併新數據
+          const oldLength = allItems.length;
           allItems = [...allItems, ...result.items];
           hasMoreData = result.hasMore;
           filteredItems = [...allItems];
           
-          console.log(`✅ 無限滾動載入成功: 新增 ${result.items.length} 項, 總計 ${allItems.length} 項`);
+          console.log(`✅ 無限滾動載入成功: 第${currentPage}頁 | 新增 ${result.items.length} 項 | 總計 ${allItems.length} 項 | hasMore: ${result.hasMore}`);
           
           // 追加顯示新項目（不清空現有項目）
           displayItems(result.items, true);
@@ -886,8 +931,9 @@
           // 更新分頁信息
           updatePaginationInfo();
           
-          // 如果還有更多數據，再次檢查是否需要繼續載入（但限制遞歸深度）
+          // 如果還有更多數據且不在收藏模式，檢查是否需要繼續載入
           if (hasMoreData && !currentSearchParams.showBookmarkedOnly) {
+            autoLoadCounter++; // 增加自動載入計數器
             setTimeout(() => {
               checkAndTriggerInfiniteScroll();
             }, 500);
@@ -895,7 +941,6 @@
           
         } catch (error) {
           console.error('❌ 無限滾動載入失敗:', error);
-          currentPage--; // 回退頁數
           
           // 顯示錯誤信息
           loadMoreError.style.display = 'block';
@@ -1251,6 +1296,37 @@
         }
       }
       
+      // 測試無限滾動功能
+      function testInfiniteScroll() {
+        console.log('🧪 手動測試無限滾動');
+        loadMoreDataInfinite();
+      }
+      
+      // 調試滾動信息
+      function debugScrollInfo() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        
+        const info = {
+          scrollTop: Math.round(scrollTop),
+          windowHeight,
+          documentHeight,
+          threshold: CONFIG.INFINITE_SCROLL_THRESHOLD,
+          triggerPoint: documentHeight - CONFIG.INFINITE_SCROLL_THRESHOLD,
+          shouldTrigger: scrollTop + windowHeight >= documentHeight - CONFIG.INFINITE_SCROLL_THRESHOLD,
+          currentPage,
+          allItemsLength: allItems.length,
+          isLoadingMore,
+          hasMoreData,
+          isInfiniteScrollEnabled,
+          autoLoadCounter
+        };
+        
+        console.table(info);
+        alert(`滾動調試信息:\n頁面高度: ${documentHeight}px\n視窗高度: ${windowHeight}px\n滾動位置: ${Math.round(scrollTop)}px\n觸發點: ${info.triggerPoint}px\n當前頁: ${currentPage}\n數據項目: ${allItems.length}\n有更多數據: ${hasMoreData}\n無限滾動啟用: ${isInfiniteScrollEnabled}\n正在載入: ${isLoadingMore}`);
+      }
+
       // API搜索功能 - Step 20
       let searchTimeout = null;
       
