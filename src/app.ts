@@ -1,7 +1,11 @@
 import { ApiService } from './services/api.js';
 import { AuthManager } from './services/auth.js';
 import { FilterManager } from './services/filter.js';
+import { LocalDataAdapter } from './services/localData.js';
 import { YogaPose, LoadingState, QueryParams } from './types/index.js';
+
+// 將 LocalDataAdapter 暴露到全局作用域，以便 HTML 可以使用
+(window as any).LocalDataAdapter = LocalDataAdapter;
 
 /**
  * 瑜伽動作應用程式主類別

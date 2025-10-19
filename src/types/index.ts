@@ -1,16 +1,26 @@
-// 瑜伽動作資料型別
+// 瑜伽動作資料型別 - 匹配 API 資料結構
 export interface YogaPose {
   id: number;
   title: string;
   description: string;
   category: string;
-  imageUrl: string;
-  videoUrl: string;
+  tags: string[];
+  sanskrit_name: string;
+  difficulty: string;
+  duration_minutes: number;
+  instructor: string;
+  created_at: string;
+  updated_at: string;
+  published_at: string;
+  image_url: string;
+  video_url: string;
+  benefits: string[];
+  // 保留向後相容的欄位
+  imageUrl?: string;
+  videoUrl?: string;
   level?: string;
-  benefits?: string;
   keys?: string;
   cautions?: string;
-  tags?: string[];
 }
 
 // API 回應型別

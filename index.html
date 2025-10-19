@@ -951,9 +951,9 @@
       </ion-content>
     </ion-modal>
 
+    <script src="./dist/app.js"></script>
     <script type="module">
       // Assignment 2.1 + Assignment 2.2 整合功能
-      import { items } from './post.js';
 
       // Assignment 2.2 變數
       let currentUser = null;
@@ -1065,30 +1065,42 @@
       // 初始化數據
       async function initializeData() {
         try {
-          // 首先嘗試使用本地數據
-          allItems = items.map((item, index) => ({
-            id: index + 1,
-            title: item.pose.replace('Pose : ', ''),
-            description: item.benefits,
-            level: item.level.replace('Level : ', ''),
-            benefits: item.benefits.replace('Benefits : ', ''),
-            keys: item.keys.replace('Keys : ', ''),
-            cautions: item.cautions.replace('Cautions : ', ''),
-            category: item.category,
-            tags: item.tags || [],
-            imageUrl: item.imageUrl,
-            videoUrl: item.videoUrl,
-            // 保持原始格式用於顯示
-            pose: item.pose,
-            originalLevel: item.level,
-            originalBenefits: item.benefits,
-            originalKeys: item.keys,
-            originalCautions: item.cautions
-          }));
+          console.log('開始從 API 獲取數據...');
           
-          console.log('使用本地數據，共', allItems.length, '項');
+          // 使用全局的 LocalDataAdapter（來自編譯的 app.js）
+          if (typeof window.LocalDataAdapter !== 'undefined') {
+            const dataAdapter = new window.LocalDataAdapter();
+            const response = await dataAdapter.getYogaPoses({ page: 1, limit: 100 });
+            
+            allItems = response.items.map((item, index) => ({
+              id: item.id || index + 1,
+              title: item.pose || item.title || item.sanskrit_name || '未知動作',
+              description: item.benefits || item.description || '無說明',
+              level: item.level || item.difficulty || '未指定',
+              benefits: Array.isArray(item.benefits) ? item.benefits.join('、') : (item.benefits || '無特定好處'),
+              keys: item.keys || '暫無要點資訊',
+              cautions: item.cautions || '暫無注意事項',
+              category: item.category || '其他',
+              tags: item.tags || [],
+              imageUrl: item.imageUrl || item.image_url,
+              videoUrl: item.videoUrl || item.video_url,
+              // 保持原始格式用於顯示
+              pose: `Pose : ${item.pose || item.sanskrit_name || '未知動作'}`,
+              originalLevel: `Level : ${item.level || item.difficulty || '未指定'}`,
+              originalBenefits: `Benefits : ${Array.isArray(item.benefits) ? item.benefits.join('、') : (item.benefits || '無特定好處')}`,
+              originalKeys: `Keys : ${item.keys || '暫無要點資訊'}`,
+              originalCautions: `Cautions : ${item.cautions || '暫無注意事項'}`
+            }));
+            
+            console.log('成功從 API 獲取數據，共', allItems.length, '項');
+          } else {
+            console.error('LocalDataAdapter 未定義，使用空數據');
+            allItems = [];
+          }
+          
         } catch (error) {
-          console.error('數據加載失敗:', error);
+          console.error('API 數據加載失敗:', error);
+          console.log('使用空數據集');
           allItems = [];
         }
 

@@ -60,28 +60,60 @@ export class ApiService {
   }
 
   /**
-   * 處理 API 回應
+   * 處理 API 回應 - 支援新的資料結構
    */
   private async handleResponse<T>(response: Response): Promise<T> {
-    if (!response.ok) {
-      const error: ApiError = await response.json();
-      throw new Error(error.error || `HTTP error! status: ${response.status}`);
-    }
+    const text = await response.text();
     
-    return response.json();
+    try {
+      const data = JSON.parse(text);
+      
+      // 檢查測試錯誤
+      if (data.error && data.details?.includes('testing purposes')) {
+        throw new Error(`測試錯誤: ${data.error}`);
+      }
+      
+      // 檢查其他錯誤
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      // 如果是瑜伽動作資料，進行格式轉換以確保向後相容
+      if (data.items && Array.isArray(data.items)) {
+        const convertedItems = data.items.map((item: any) => ({
+          ...item,
+          // 確保向後相容的欄位存在
+          imageUrl: item.image_url || item.imageUrl,
+          videoUrl: item.video_url || item.videoUrl,
+          level: item.difficulty || item.level,
+          keys: item.keys || '暫無要點資訊',
+          cautions: item.cautions || '暫無注意事項'
+        }));
+        
+        return {
+          ...data,
+          items: convertedItems
+        } as T;
+      }
+      
+      return data as T;
+      
+    } catch (parseError) {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      throw parseError;
+    }
   }
 
   /**
-   * 載入瑜伽動作資料
+   * 載入瑜伽動作資料 - 使用新的 API 結構
    */
   async fetchYogaPoses(params: QueryParams = {}): Promise<ApiResponse<YogaPose>> {
-    // 如果已經設定使用本地資料，直接使用
-    if (this.useLocalData) {
-      console.log('使用本地資料');
-      return this.localDataAdapter.getYogaPoses(params);
-    }
-
+    // 優先使用真實 API，失敗時才使用本地資料
     try {
+      console.log('嘗試從 API 獲取瑜伽動作:', params);
+      
       const queryString = new URLSearchParams();
       
       if (params.page) queryString.append('page', params.page.toString());
@@ -92,19 +124,70 @@ export class ApiService {
       if (params.order) queryString.append('order', params.order);
 
       const url = `${BASE_URL}${RESOURCE_ENDPOINT}?${queryString}`;
+      console.log('API 請求 URL:', url);
       
-      const response = await fetch(url, {
+      // 使用重試機制
+      const response = await this.fetchWithRetry(url, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
 
-      return this.handleResponse<ApiResponse<YogaPose>>(response);
+      const data = await this.handleResponse<ApiResponse<YogaPose>>(response);
+      console.log('API 回應成功，項目數量:', data.items?.length || 0);
+      
+      return data;
       
     } catch (error) {
       console.warn('API 載入失敗，切換到本地資料:', error);
       this.useLocalData = true;
       return this.localDataAdapter.getYogaPoses(params);
     }
+  }
+
+  /**
+   * 重試機制的 fetch
+   */
+  private async fetchWithRetry(url: string, options: RequestInit, retries: number = 3): Promise<Response> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(url, options);
+        
+        // 檢查是否是測試錯誤
+        if (!response.ok) {
+          const text = await response.text();
+          try {
+            const data = JSON.parse(text);
+            if (data.error && data.details?.includes('testing purposes')) {
+              console.warn(`收到測試錯誤 (嘗試 ${i + 1}/${retries}):`, data.error);
+              if (i < retries - 1) {
+                await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+                continue;
+              }
+            }
+          } catch (parseError) {
+            // JSON 解析失敗，正常處理 HTTP 錯誤
+          }
+          
+          // 重新建立 Response 物件以供後續處理
+          return new Response(text, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers
+          });
+        }
+        
+        return response;
+        
+      } catch (error) {
+        console.warn(`請求失敗 (嘗試 ${i + 1}/${retries}):`, error);
+        if (i === retries - 1) {
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      }
+    }
+    
+    throw new Error('所有重試都失敗了');
   }
 
   /**
@@ -283,6 +366,41 @@ export class ApiService {
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
+    }
+  }
+
+  /**
+   * 獲取所有分類
+   */
+  async getCategories(): Promise<string[]> {
+    if (this.useLocalData) {
+      console.log('使用本地資料獲取分類');
+      return this.localDataAdapter.getCategories();
+    }
+
+    try {
+      // 先嘗試從專門的分類 API 獲取
+      const response = await this.fetchWithRetry(`${BASE_URL}/yoga-poses/categories`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+      
+      const data = await this.handleResponse<{ categories: string[] }>(response);
+      return data.categories || [];
+      
+    } catch (error) {
+      console.warn('獲取分類 API 失敗，嘗試從瑜伽動作列表提取分類:', error);
+      
+      try {
+        // 如果分類 API 失敗，從瑜伽動作列表中提取分類
+        const posesResponse = await this.fetchYogaPoses({ page: 1, limit: 100 });
+        const categories = [...new Set(posesResponse.items.map(item => item.category))];
+        return categories.filter(Boolean);
+      } catch (listError) {
+        console.warn('從瑜伽動作列表提取分類也失敗，切換到本地資料:', listError);
+        this.useLocalData = true;
+        return this.localDataAdapter.getCategories();
+      }
     }
   }
 }
