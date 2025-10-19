@@ -302,7 +302,7 @@
             <div class="filter-item">
               <label>收藏過濾</label>
               <ion-button id="bookmark-filter-btn" fill="outline" color="primary" onclick="toggleBookmarkFilter()">
-                <ion-icon name="heart-outline"></ion-icon>
+                <ion-icon name="eye"></ion-icon>
                 顯示全部
               </ion-button>
             </div>
@@ -601,7 +601,7 @@
         category: 'all',
         sort: '',
         order: 'asc',
-        showBookmarkedOnly: false
+        hideBookmarked: false
       };
       
       // Step 24: 無限滾動狀態 (默認啟用無限滾動)
@@ -724,25 +724,25 @@
       
       // Step 23: 收藏過濾功能
       function toggleBookmarkFilter() {
-        currentSearchParams.showBookmarkedOnly = !currentSearchParams.showBookmarkedOnly;
+        currentSearchParams.hideBookmarked = !currentSearchParams.hideBookmarked;
         
-        console.log('🔄 切換書籤過濾:', currentSearchParams.showBookmarkedOnly);
+        console.log('🔄 切換書籤過濾:', currentSearchParams.hideBookmarked);
         console.log('📚 目前書籤數量:', bookmarks.length);
         console.log('📋 目前項目數量:', allItems.length);
         
         const filterBtn = document.getElementById('bookmark-filter-btn');
         const icon = filterBtn.querySelector('ion-icon');
         
-        if (currentSearchParams.showBookmarkedOnly) {
+        if (currentSearchParams.hideBookmarked) {
           filterBtn.setAttribute('fill', 'solid');
-          filterBtn.setAttribute('color', 'danger');
-          icon.setAttribute('name', 'heart');
-          filterBtn.innerHTML = '<ion-icon name="heart"></ion-icon> 只顯示收藏';
+          filterBtn.setAttribute('color', 'warning');
+          icon.setAttribute('name', 'eye-off');
+          filterBtn.innerHTML = '<ion-icon name="eye-off"></ion-icon> 隱藏已收藏';
         } else {
           filterBtn.setAttribute('fill', 'outline');
           filterBtn.setAttribute('color', 'primary');
-          icon.setAttribute('name', 'heart-outline');
-          filterBtn.innerHTML = '<ion-icon name="heart-outline"></ion-icon> 顯示全部';
+          icon.setAttribute('name', 'eye');
+          filterBtn.innerHTML = '<ion-icon name="eye"></ion-icon> 顯示全部';
         }
         
         // 重新顯示當前項目，應用收藏過濾
@@ -751,30 +751,30 @@
       
       function applyBookmarkFilter() {
         console.log('🔍 開始收藏過濾...');
-        console.log('   showBookmarkedOnly:', currentSearchParams.showBookmarkedOnly);
+        console.log('   hideBookmarked:', currentSearchParams.hideBookmarked);
         console.log('   bookmarks數量:', bookmarks.length);
         console.log('   allItems數量:', allItems.length);
         
-        if (currentSearchParams.showBookmarkedOnly) {
+        if (currentSearchParams.hideBookmarked) {
           console.log('   收藏ID列表:', bookmarks.map(b => b.id));
           console.log('   項目ID列表(前5個):', allItems.slice(0,5).map(item => item.id));
           
-          // 詳細匹配檢查
-          const matches = [];
+          // 詳細匹配檢查 - 顯示未收藏的項目
+          const hiddenItems = [];
           allItems.forEach(item => {
             const isBookmarked = bookmarks.some(bookmark => {
               const match = parseInt(bookmark.id) === parseInt(item.id);
               if (match) {
-                matches.push({itemId: item.id, bookmarkId: bookmark.id, title: item.title});
+                hiddenItems.push({itemId: item.id, bookmarkId: bookmark.id, title: item.title});
               }
               return match;
             });
           });
-          console.log('   匹配的項目:', matches);
+          console.log('   被隱藏的收藏項目:', hiddenItems);
         }
         
-        const itemsToDisplay = currentSearchParams.showBookmarkedOnly 
-          ? allItems.filter(item => bookmarks.some(bookmark => parseInt(bookmark.id) === parseInt(item.id)))
+        const itemsToDisplay = currentSearchParams.hideBookmarked 
+          ? allItems.filter(item => !bookmarks.some(bookmark => parseInt(bookmark.id) === parseInt(item.id)))
           : allItems;
           
         console.log(`📊 收藏過濾結果: ${itemsToDisplay.length}/${allItems.length} 項目`);
@@ -785,14 +785,14 @@
         displayItems(itemsToDisplay);
         
         // 更新分頁信息
-        if (currentSearchParams.showBookmarkedOnly) {
+        if (currentSearchParams.hideBookmarked) {
           const pagination = document.getElementById('pagination-container');
           const noMoreData = document.getElementById('no-more-data');
           const info = document.getElementById('pagination-info');
           
           noMoreData.style.display = 'none';
           info.innerHTML = `
-            <strong>收藏項目: ${itemsToDisplay.length} 項</strong>
+            <strong>已隱藏收藏項目，顯示: ${itemsToDisplay.length} 項</strong>
             <br>
             <small style="color: #666;">${currentUser ? '只顯示您收藏的項目' : '請登錄後收藏項目'}</small>
           `;
@@ -828,7 +828,7 @@
           isLoadingMore,
           hasMoreData,
           isInfiniteScrollEnabled,
-          showBookmarkedOnly: currentSearchParams.showBookmarkedOnly
+          hideBookmarked: currentSearchParams.hideBookmarked
         });
         
         // 如果正在加載或禁用無限滾動，則不執行
@@ -914,8 +914,8 @@
           // 更新分頁信息
           updatePaginationInfo();
           
-          // 如果還有更多數據且不在收藏模式，檢查是否需要繼續載入
-          if (hasMoreData && !currentSearchParams.showBookmarkedOnly) {
+          // 如果還有更多數據且不在隱藏收藏模式，檢查是否需要繼續載入
+          if (hasMoreData && !currentSearchParams.hideBookmarked) {
             autoLoadCounter++; // 增加自動載入計數器
             setTimeout(() => {
               checkAndTriggerInfiniteScroll();
@@ -1141,7 +1141,7 @@
           displayItems(allItems);
           
           // Step 23: 應用收藏過濾（如果啟用）
-          if (currentSearchParams.showBookmarkedOnly) {
+          if (currentSearchParams.hideBookmarked) {
             applyBookmarkFilter();
           }
           
@@ -2328,7 +2328,7 @@
         console.log(`更新了 ${bookmarkBtns.length} 個收藏按鈕，當前收藏數: ${bookmarks.length}`);
         
         // Step 23: 如果啟用了收藏過濾，重新應用過濾
-        if (currentSearchParams.showBookmarkedOnly) {
+        if (currentSearchParams.hideBookmarked) {
           applyBookmarkFilter();
         }
       }
