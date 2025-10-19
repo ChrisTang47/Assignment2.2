@@ -278,6 +278,35 @@
               </ion-select>
             </div>
             
+            <!-- Step 22: 排序功能 -->
+            <div class="filter-item">
+              <label>排序方式</label>
+              <ion-select id="sort-select" placeholder="預設排序">
+                <ion-select-option value="">預設排序</ion-select-option>
+                <ion-select-option value="name">按名稱排序</ion-select-option>
+                <ion-select-option value="difficulty">按難度排序</ion-select-option>
+                <ion-select-option value="duration_minutes">按時長排序</ion-select-option>
+                <ion-select-option value="category">按分類排序</ion-select-option>
+              </ion-select>
+            </div>
+            
+            <div class="filter-item">
+              <label>排序順序</label>
+              <ion-select id="order-select" value="asc">
+                <ion-select-option value="asc">升序 (A-Z, 1-9)</ion-select-option>
+                <ion-select-option value="desc">降序 (Z-A, 9-1)</ion-select-option>
+              </ion-select>
+            </div>
+            
+            <!-- Step 23: 只顯示已收藏項目過濾 -->
+            <div class="filter-item">
+              <label>收藏過濾</label>
+              <ion-button id="bookmark-filter-btn" fill="outline" color="primary" onclick="toggleBookmarkFilter()">
+                <ion-icon name="heart-outline"></ion-icon>
+                顯示全部
+              </ion-button>
+            </div>
+            
             <div class="filter-item">
               <label>每頁顯示</label>
               <ion-select id="limit-select" value="10">
@@ -310,7 +339,16 @@
         <!-- 分頁信息和載入更多 -->
         <div id="pagination-container" style="display: none; text-align: center; padding: 20px;">
           <p id="pagination-info">顯示第 1-10 項，共 50 項</p>
-          <ion-button id="load-more-btn" fill="outline" onclick="loadMoreData()">載入更多</ion-button>
+          
+          <!-- Step 24: 傳統載入更多按鈕（可選） -->
+          <ion-button id="load-more-btn" fill="outline" onclick="loadMoreData()" style="display: none;">載入更多</ion-button>
+          
+          <!-- Step 24: 無限滾動載入指示器 -->
+          <div id="infinite-scroll-loading" style="display: none; padding: 20px;">
+            <ion-spinner name="crescent" style="margin-right: 10px;"></ion-spinner>
+            <span>正在載入更多瑜伽動作...</span>
+          </div>
+          
           <div id="load-more-error" style="display: none; color: red; margin-top: 10px;">載入失敗，請重試</div>
           <div id="no-more-data" style="display: none; color: #666; margin-top: 10px;">沒有更多數據了</div>
         </div>
@@ -430,8 +468,27 @@
                   </ion-input>
                 </ion-item>
                 <div id="register-password-error" class="error-message"></div>
+                
+                <!-- Step 25: 密碼強度指示器 -->
+                <div id="password-strength-container" style="margin-top: 10px; display: none;">
+                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                    <span style="font-size: 14px; font-weight: 500;">密碼強度:</span>
+                    <div id="password-strength-bar" style="flex: 1; height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden;">
+                      <div id="password-strength-fill" style="height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s;"></div>
+                    </div>
+                    <span id="password-strength-text" style="font-size: 12px; font-weight: 500;">弱</span>
+                  </div>
+                  <div id="password-requirements-checklist" style="font-size: 12px; color: #666;">
+                    <div id="req-length">✗ 至少8個字符</div>
+                    <div id="req-lowercase">✗ 包含小寫字母</div>
+                    <div id="req-uppercase">✗ 包含大寫字母</div>
+                    <div id="req-numbers">✗ 包含數字</div>
+                    <div id="req-special">○ 包含特殊字符 (可選)</div>
+                  </div>
+                </div>
+                
                 <div class="password-requirements">
-                  <small>密碼要求：至少8個字符，包含大寫字母、小寫字母、數字</small>
+                  <small>請輸入符合安全要求的密碼</small>
                 </div>
               </div>
               
@@ -508,6 +565,19 @@
       let bookmarks = [];
       let hasMoreData = true;
       
+      // 搜索、篩選和排序狀態
+      let currentSearchParams = {
+        search: '',
+        category: 'all',
+        sort: '',
+        order: 'asc',
+        showBookmarkedOnly: false
+      };
+      
+      // Step 24: 無限滾動狀態
+      let isInfiniteScrollEnabled = true;
+      let isLoadingMore = false;
+      
       // 認證和會話管理
       const AUTH_STORAGE_KEY = 'yoga_app_auth';
       const USER_STORAGE_KEY = 'yoga_app_user';
@@ -525,13 +595,36 @@
         maxConsecutiveErrors: 5
       };
       
-      // API 函數 - 帶重試機制
-      async function fetchFromAPIWithRetry(page = 1, limit = 10) {
+      // API 函數 - 帶重試機制 (支持搜索、分類、排序參數)
+      async function fetchFromAPIWithRetry(page = 1, limit = 10, searchParams = {}) {
         const maxRetries = 15;
         
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           try {
-            const url = `https://dae-mobile-assignment.hkit.cc/api/yoga-poses/?page=${page}&limit=${limit}`;
+            // 構建URL參數
+            const urlParams = new URLSearchParams();
+            urlParams.append('page', page);
+            urlParams.append('limit', limit);
+            
+            // 添加搜索參數
+            if (searchParams.search && searchParams.search.trim()) {
+              urlParams.append('search', searchParams.search.trim());
+            }
+            
+            // 添加分類參數
+            if (searchParams.category && searchParams.category !== '' && searchParams.category !== 'all') {
+              urlParams.append('category', searchParams.category);
+            }
+            
+            // 添加排序參數
+            if (searchParams.sort) {
+              urlParams.append('sort', searchParams.sort);
+              if (searchParams.order) {
+                urlParams.append('order', searchParams.order);
+              }
+            }
+            
+            const url = `https://dae-mobile-assignment.hkit.cc/api/yoga-poses/?${urlParams.toString()}`;
             console.log(`API 嘗試 ${attempt}/${maxRetries}:`, url);
             
             // 更新載入消息
@@ -596,9 +689,170 @@
         }
       }
       
+      // Step 23: 收藏過濾功能
+      function toggleBookmarkFilter() {
+        currentSearchParams.showBookmarkedOnly = !currentSearchParams.showBookmarkedOnly;
+        
+        const filterBtn = document.getElementById('bookmark-filter-btn');
+        const icon = filterBtn.querySelector('ion-icon');
+        
+        if (currentSearchParams.showBookmarkedOnly) {
+          filterBtn.setAttribute('fill', 'solid');
+          filterBtn.setAttribute('color', 'danger');
+          icon.setAttribute('name', 'heart');
+          filterBtn.innerHTML = '<ion-icon name="heart"></ion-icon> 只顯示收藏';
+        } else {
+          filterBtn.setAttribute('fill', 'outline');
+          filterBtn.setAttribute('color', 'primary');
+          icon.setAttribute('name', 'heart-outline');
+          filterBtn.innerHTML = '<ion-icon name="heart-outline"></ion-icon> 顯示全部';
+        }
+        
+        // 重新顯示當前項目，應用收藏過濾
+        applyBookmarkFilter();
+      }
+      
+      function applyBookmarkFilter() {
+        const itemsToDisplay = currentSearchParams.showBookmarkedOnly 
+          ? allItems.filter(item => bookmarks.includes(item.id))
+          : allItems;
+          
+        console.log(`收藏過濾: ${currentSearchParams.showBookmarkedOnly ? '只顯示收藏' : '顯示全部'}, 結果: ${itemsToDisplay.length}/${allItems.length}`);
+        
+        // 重新顯示項目
+        const list = document.getElementById('poses-list');
+        list.innerHTML = '<div class="poses-grid"></div>';
+        displayItems(itemsToDisplay);
+        
+        // 更新分頁信息
+        if (currentSearchParams.showBookmarkedOnly) {
+          const pagination = document.getElementById('pagination-container');
+          const loadMoreBtn = document.getElementById('load-more-btn');
+          const noMoreData = document.getElementById('no-more-data');
+          const info = document.getElementById('pagination-info');
+          
+          loadMoreBtn.style.display = 'none';
+          noMoreData.style.display = 'none';
+          info.innerHTML = `
+            <strong>收藏項目: ${itemsToDisplay.length} 項</strong>
+            <br>
+            <small style="color: #666;">${currentUser ? '只顯示您收藏的項目' : '請登錄後收藏項目'}</small>
+          `;
+        } else {
+          updatePaginationInfo();
+        }
+      }
+      
+      // Step 24: 無限滾動功能
+      function setupInfiniteScroll() {
+        // 移除舊的事件監聽器（如果存在）
+        window.removeEventListener('scroll', handleInfiniteScroll);
+        
+        // 添加滾動事件監聽器
+        window.addEventListener('scroll', handleInfiniteScroll);
+        console.log('✅ 無限滾動已啟用');
+      }
+      
+      function handleInfiniteScroll() {
+        // 如果正在加載或沒有更多數據，則不執行
+        if (isLoadingMore || !hasMoreData || !isInfiniteScrollEnabled) {
+          return;
+        }
+        
+        // 如果啟用了收藏過濾，則不執行無限滾動
+        if (currentSearchParams.showBookmarkedOnly) {
+          return;
+        }
+        
+        // 檢查是否接近頁面底部（距離底部200px時觸發）
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        
+        if (scrollTop + windowHeight >= documentHeight - 200) {
+          console.log('觸發無限滾動載入');
+          loadMoreDataInfinite();
+        }
+      }
+      
+      async function loadMoreDataInfinite() {
+        if (isLoadingMore || !hasMoreData) {
+          return;
+        }
+        
+        isLoadingMore = true;
+        const infiniteLoading = document.getElementById('infinite-scroll-loading');
+        const loadMoreError = document.getElementById('load-more-error');
+        
+        try {
+          // 顯示載入指示器
+          infiniteLoading.style.display = 'block';
+          loadMoreError.style.display = 'none';
+          
+          console.log(`無限滾動載入第 ${currentPage + 1} 頁數據，搜索條件:`, currentSearchParams);
+          currentPage++;
+          
+          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage, currentSearchParams);
+          
+          if (result.items.length === 0) {
+            // 沒有更多數據
+            hasMoreData = false;
+            updatePaginationInfo();
+            return;
+          }
+          
+          // 合併新數據
+          allItems = [...allItems, ...result.items];
+          hasMoreData = result.hasMore;
+          filteredItems = [...allItems];
+          
+          console.log(`✅ 無限滾動載入成功: 新增 ${result.items.length} 項, 總計 ${allItems.length} 項`);
+          
+          // 追加顯示新項目（不清空現有項目）
+          displayItems(result.items, true);
+          
+          // 更新分頁信息
+          updatePaginationInfo();
+          
+        } catch (error) {
+          console.error('❌ 無限滾動載入失敗:', error);
+          currentPage--; // 回退頁數
+          
+          // 顯示錯誤信息
+          loadMoreError.style.display = 'block';
+          loadMoreError.innerHTML = `
+            <ion-icon name="warning" style="color: #dc3545; margin-right: 5px;"></ion-icon>
+            載入失敗: ${error.message}
+            <ion-button size="small" fill="clear" onclick="loadMoreDataInfinite()" style="margin-left: 10px;">
+              <ion-icon name="refresh" slot="start"></ion-icon>
+              重試
+            </ion-button>
+          `;
+          
+        } finally {
+          isLoadingMore = false;
+          infiniteLoading.style.display = 'none';
+        }
+      }
+      
+      function toggleInfiniteScroll() {
+        isInfiniteScrollEnabled = !isInfiniteScrollEnabled;
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        
+        if (isInfiniteScrollEnabled) {
+          setupInfiniteScroll();
+          loadMoreBtn.style.display = 'none';
+          console.log('✅ 切換到無限滾動模式');
+        } else {
+          window.removeEventListener('scroll', handleInfiniteScroll);
+          loadMoreBtn.style.display = hasMoreData ? 'block' : 'none';
+          console.log('✅ 切換到手動載入模式');
+        }
+      }
+      
       // 顯示數據
-      function displayItems(items) {
-        console.log('顯示項目:', items.length);
+      function displayItems(items, appendMode = false) {
+        console.log('顯示項目:', items.length, appendMode ? '(追加模式)' : '(替換模式)');
         const list = document.getElementById('poses-list');
         const loading = document.getElementById('loading-container');
         const pagination = document.getElementById('pagination-container');
@@ -608,8 +862,8 @@
           return;
         }
         
-        // 如果是第一頁，清空列表
-        if (currentPage === 1) {
+        // 如果不是追加模式或是第一頁，清空列表
+        if (!appendMode || currentPage === 1) {
           list.innerHTML = '<div class="poses-grid"></div>';
         }
         
@@ -726,7 +980,8 @@
         pagination.style.display = 'block';
         
         if (hasMoreData) {
-          loadMoreBtn.style.display = 'block';
+          // Step 24: 根據無限滾動狀態決定是否顯示按鈕
+          loadMoreBtn.style.display = isInfiniteScrollEnabled ? 'none' : 'block';
           loadMoreBtn.disabled = false;
           noMoreData.style.display = 'none';
           console.log('顯示載入更多按鈕');
@@ -770,10 +1025,10 @@
         list.style.display = 'none';
         pagination.style.display = 'none';
         
-        console.log(`載入參數: page=${currentPage}, limit=${itemsPerPage}`);
+        console.log(`載入參數: page=${currentPage}, limit=${itemsPerPage}, 搜索條件:`, currentSearchParams);
         
         try {
-          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage);
+          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage, currentSearchParams);
           
           if (!result.items || result.items.length === 0) {
             showError('沒有找到瑜伽動作數據');
@@ -788,6 +1043,11 @@
           console.log(`✅ 首次載入成功: ${result.items.length} 項, hasMore: ${result.hasMore}`);
           
           displayItems(allItems);
+          
+          // Step 23: 應用收藏過濾（如果啟用）
+          if (currentSearchParams.showBookmarkedOnly) {
+            applyBookmarkFilter();
+          }
           
         } catch (error) {
           console.error('❌ 載入數據失敗:', error);
@@ -912,10 +1172,10 @@
           `;
           loadMoreError.style.display = 'none';
           
-          console.log(`載入第 ${currentPage + 1} 頁數據...`);
+          console.log(`載入第 ${currentPage + 1} 頁數據，搜索條件:`, currentSearchParams);
           currentPage++;
           
-          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage);
+          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage, currentSearchParams);
           
           if (result.items.length === 0) {
             // 沒有更多數據
@@ -1044,7 +1304,41 @@
         displayItems(allItems);
       }
       
-      // 搜索和篩選功能
+      // API搜索功能 - Step 20
+      let searchTimeout = null;
+      
+      async function performAPISearch() {
+        // 清除之前的搜索延遲
+        if (searchTimeout) {
+          clearTimeout(searchTimeout);
+        }
+        
+        // 延遲500ms執行搜索，避免頻繁API調用
+        searchTimeout = setTimeout(async () => {
+          const searchTerm = document.getElementById('search-bar').value.trim();
+          const selectedCategory = document.getElementById('category-select').value;
+          const selectedSort = document.getElementById('sort-select').value;
+          const selectedOrder = document.getElementById('order-select').value;
+          
+          // 更新搜索參數
+          currentSearchParams.search = searchTerm;
+          currentSearchParams.category = selectedCategory;
+          currentSearchParams.sort = selectedSort;
+          currentSearchParams.order = selectedOrder;
+          
+          console.log('執行API搜索:', currentSearchParams);
+          
+          // 如果有搜索條件，重新載入數據
+          if (searchTerm || (selectedCategory && selectedCategory !== '') || selectedSort) {
+            await loadData();
+          } else {
+            // 如果清空所有搜索條件，也重新載入數據
+            await loadData();
+          }
+        }, 500);
+      }
+      
+      // 搜索和篩選功能 (本地篩選，保留作為後備)
       function filterItems() {
         const searchTerm = document.getElementById('search-bar').value.toLowerCase();
         const selectedCategory = document.getElementById('category-select').value;
@@ -1104,7 +1398,7 @@
         document.getElementById('logout-confirm-modal').dismiss();
       }
       
-      // 表單驗證工具函數
+      // Step 25: 增強表單驗證工具函數
       function validateEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
@@ -1116,10 +1410,108 @@
         return passwordRegex.test(password);
       }
       
+      // Step 25: 密碼強度檢查（詳細分析）
+      function getPasswordStrength(password) {
+        const checks = {
+          length: password.length >= 8,
+          lowercase: /[a-z]/.test(password),
+          uppercase: /[A-Z]/.test(password),
+          numbers: /\d/.test(password),
+          special: /[@$!%*?&]/.test(password),
+          noSpaces: !/\s/.test(password)
+        };
+        
+        const passedChecks = Object.values(checks).filter(Boolean).length;
+        let strength = 'weak';
+        let score = 0;
+        
+        if (checks.length) score += 2;
+        if (checks.lowercase) score += 1;
+        if (checks.uppercase) score += 1;
+        if (checks.numbers) score += 1;
+        if (checks.special) score += 2;
+        if (checks.noSpaces) score += 1;
+        
+        if (score >= 7) strength = 'strong';
+        else if (score >= 5) strength = 'medium';
+        
+        return {
+          strength,
+          score,
+          checks,
+          isValid: checks.length && checks.lowercase && checks.uppercase && checks.numbers && checks.noSpaces
+        };
+      }
+      
       function validateUsername(username) {
         // 用戶名：3-20個字符，只能包含字母、數字、下劃線
         const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
         return usernameRegex.test(username);
+      }
+      
+      // Step 25: 實時密碼強度檢查和視覺反饋
+      function updatePasswordStrength(password) {
+        const strengthContainer = document.getElementById('password-strength-container');
+        const strengthFill = document.getElementById('password-strength-fill');
+        const strengthText = document.getElementById('password-strength-text');
+        
+        if (!password || password.length === 0) {
+          strengthContainer.style.display = 'none';
+          return;
+        }
+        
+        strengthContainer.style.display = 'block';
+        const analysis = getPasswordStrength(password);
+        
+        // 更新強度條
+        let width = 0;
+        let color = '#dc3545'; // 紅色 (弱)
+        let text = '弱';
+        
+        if (analysis.strength === 'strong') {
+          width = 100;
+          color = '#28a745'; // 綠色 (強)
+          text = '強';
+        } else if (analysis.strength === 'medium') {
+          width = 66;
+          color = '#ffc107'; // 黃色 (中等)
+          text = '中等';
+        } else {
+          width = 33;
+          color = '#dc3545'; // 紅色 (弱)
+          text = '弱';
+        }
+        
+        strengthFill.style.width = width + '%';
+        strengthFill.style.backgroundColor = color;
+        strengthText.textContent = text;
+        strengthText.style.color = color;
+        
+        // 更新需求檢查列表
+        updateRequirementChecklist(analysis.checks);
+      }
+      
+      function updateRequirementChecklist(checks) {
+        const requirements = [
+          { id: 'req-length', check: checks.length, text: '至少8個字符' },
+          { id: 'req-lowercase', check: checks.lowercase, text: '包含小寫字母' },
+          { id: 'req-uppercase', check: checks.uppercase, text: '包含大寫字母' },
+          { id: 'req-numbers', check: checks.numbers, text: '包含數字' },
+          { id: 'req-special', check: checks.special, text: '包含特殊字符 (可選)' }
+        ];
+        
+        requirements.forEach(req => {
+          const element = document.getElementById(req.id);
+          if (element) {
+            if (req.check) {
+              element.innerHTML = `<span style="color: #28a745;">✓</span> ${req.text}`;
+            } else if (req.id === 'req-special') {
+              element.innerHTML = `<span style="color: #6c757d;">○</span> ${req.text}`;
+            } else {
+              element.innerHTML = `<span style="color: #dc3545;">✗</span> ${req.text}`;
+            }
+          }
+        });
       }
       
       function showFieldError(fieldId, message) {
@@ -1224,13 +1616,16 @@
           isValid = false;
         }
         
-        // 驗證密碼
+        // Step 25: 驗證密碼（使用增強版檢查）
         if (!password) {
           showFieldError('register-password', '請輸入密碼');
           isValid = false;
-        } else if (!validatePassword(password)) {
-          showFieldError('register-password', '密碼需至少8位，包含大寫、小寫字母和數字');
-          isValid = false;
+        } else {
+          const passwordStrength = getPasswordStrength(password);
+          if (!passwordStrength.isValid) {
+            showFieldError('register-password', '密碼必須至少8位，包含大寫字母、小寫字母、數字且無空格');
+            isValid = false;
+          }
         }
         
         // 驗證確認密碼
@@ -2008,6 +2403,11 @@
         });
         
         console.log(`更新了 ${bookmarkBtns.length} 個收藏按鈕，當前收藏數: ${bookmarks.length}`);
+        
+        // Step 23: 如果啟用了收藏過濾，重新應用過濾
+        if (currentSearchParams.showBookmarkedOnly) {
+          applyBookmarkFilter();
+        }
       }
       
       function showSuccessMessage(message) {
@@ -2072,9 +2472,11 @@
           }
         }, 5 * 60 * 1000);
         
-        // 設置事件監聽器
-        document.getElementById('search-bar').addEventListener('ionInput', filterItems);
-        document.getElementById('category-select').addEventListener('ionChange', filterItems);
+        // 設置事件監聽器 - Step 20: API搜索, Step 22: 排序功能
+        document.getElementById('search-bar').addEventListener('ionInput', performAPISearch);
+        document.getElementById('category-select').addEventListener('ionChange', performAPISearch);
+        document.getElementById('sort-select').addEventListener('ionChange', performAPISearch);
+        document.getElementById('order-select').addEventListener('ionChange', performAPISearch);
         document.getElementById('limit-select').addEventListener('ionChange', (e) => {
           itemsPerPage = parseInt(e.detail.value);
           loadData(); // 重新載入數據
@@ -2171,8 +2573,13 @@
         if (registerPassword) {
           registerPassword.addEventListener('ionInput', () => {
             const value = registerPassword.value;
+            
+            // Step 25: 實時密碼強度檢查
+            updatePasswordStrength(value);
+            
             if (value) {
-              if (!validatePassword(value)) {
+              const strength = getPasswordStrength(value);
+              if (!strength.isValid) {
                 showFieldError('register-password', '密碼需至少8位，包含大寫、小寫字母和數字');
               } else {
                 hideFieldError('register-password');
@@ -2180,6 +2587,9 @@
             }
           });
         }
+        
+        // Step 24: 啟用無限滾動
+        setupInfiniteScroll();
         
         // 開始載入數據
         loadData();
