@@ -696,9 +696,16 @@
               
               // 🚨 強制檢查：如果API返回超過限制的項目，則截取
               let actualItems = data.items;
+              console.log(`🔍 CRITICAL DEBUG - 原始API返回: ${data.items.length} 項目`);
+              console.log(`🔍 CRITICAL DEBUG - 請求的限制: ${limit} 項目`);
+              console.log(`🔍 CRITICAL DEBUG - 前3個項目ID:`, data.items.slice(0,3).map(item => item.id));
+              
               if (data.items.length > limit) {
-                console.warn(`⚠️ API返回了${data.items.length}個項目，但請求限制是${limit}，強制截取前${limit}個`);
+                console.warn(`⚠️ 🚨 FORCE TRUNCATE: API返回了${data.items.length}個項目，但請求限制是${limit}，強制截取前${limit}個`);
                 actualItems = data.items.slice(0, limit);
+                console.log(`✅ 截取後項目數量: ${actualItems.length}`);
+              } else {
+                console.log(`✅ API返回數量正確: ${data.items.length} <= ${limit}`);
               }
               
               return {
@@ -989,7 +996,9 @@
       
       // 顯示數據
       function displayItems(items, appendMode = false) {
-        console.log('顯示項目:', items.length, appendMode ? '(追加模式)' : '(替換模式)');
+        console.log(`🖼️ DISPLAY ITEMS DEBUG: 要顯示 ${items.length} 個項目, 模式: ${appendMode ? '追加' : '替換'}`);
+        console.log(`🖼️ DISPLAY 當前頁: ${currentPage}, items參數:`, items.map(item => ({id: item.id, title: item.title})));
+        
         const list = document.getElementById('poses-list');
         const loading = document.getElementById('loading-container');
         const pagination = document.getElementById('pagination-container');
@@ -1076,6 +1085,10 @@
         // 更新顯示狀態
         loading.style.display = 'none';
         list.style.display = 'block';
+        
+        // 🔍 計算實際渲染的卡片數量
+        const actualCards = document.querySelectorAll('.pose-card').length;
+        console.log(`🖼️ FINAL RENDER CHECK: 頁面上實際顯示了 ${actualCards} 張卡片`);
         
         // 更新書籤UI狀態
         if (currentUser) {
