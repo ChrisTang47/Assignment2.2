@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>主題清單</title>
-    <!-- Ionic CDN -->
+    <title>瑜伽動作應用 - Assignment 2.2</title>
     <script
       type="module"
       src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"
@@ -17,1412 +16,671 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css"
     />
+    
     <style>
-      /* 運動風格的全局設置 */
-      :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        --hover-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
-        --border-radius: 16px;
-        --text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      /* 背景設置 */
-      ion-app {
-        background: linear-gradient(135deg, #e3f2fd 0%, #f8bbd9 50%, #e1f5fe 100%);
-        min-height: 100vh;
-      }
-
-      /* 標題欄運動風格 */
-      ion-header {
-        background: var(--primary-gradient);
-        box-shadow: var(--card-shadow);
-      }
-
-      ion-toolbar {
-        --background: transparent;
-        --color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      ion-title {
-        font-weight: bold;
-        font-size: 1.4em;
-        text-shadow: var(--text-shadow);
-        letter-spacing: 0.5px;
-        text-align: center;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      /* 搜索欄運動風格 */
-      ion-searchbar {
-        --background: rgba(255, 255, 255, 0.95);
-        --border-radius: 25px;
-        --box-shadow: var(--card-shadow);
-        margin: 8px 16px;
-        backdrop-filter: blur(10px);
-        overflow: hidden;
-      }
-
-      /* 分類選擇器 */
-      ion-item {
-        --background: rgba(255, 255, 255, 0.9);
-        --border-radius: 20px;
-        margin: 0 16px 8px 16px;
-        border-radius: 20px;
-        box-shadow: var(--card-shadow);
-        overflow: hidden;
-      }
-
-      /* 內容區域 */
-      ion-content {
-        --background: transparent;
-        --padding-start: 16px;
-        --padding-end: 16px;
-        --padding-top: 16px;
-      }
-
-      /* 列表項目運動卡片風格 */
-      .list-item {
-        --background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
-        --border-radius: var(--border-radius);
-        --box-shadow: var(--card-shadow);
-        margin-bottom: 20px;
-        border-radius: var(--border-radius);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
-        position: relative;
-      }
-
-      .list-item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--primary-gradient);
-        border-radius: var(--border-radius) var(--border-radius) 0 0;
-      }
-
-      .list-item:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--hover-shadow);
-      }
-
-      /* 內容容器 */
-      .item-content {
-        width: 100%;
-        padding: 20px;
-        background: transparent;
-      }
-
-      /* 姿勢名稱 - 運動標題風格 */
-      .item-pose {
-        font-weight: 800;
-        font-size: 1.3em;
-        margin: 0 0 12px 0;
-        background: var(--primary-gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        letter-spacing: 0.5px;
-      }
-
-      /* 級別 - 運動徽章風格 */
-      .item-level {
-        display: inline-block;
-        background: var(--secondary-gradient);
-        color: white;
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-size: 0.85em;
-        font-weight: 600;
-        margin-bottom: 12px;
-        text-shadow: var(--text-shadow);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      }
-
-      /* 類型 */
-      .item-type {
-        color: #666;
-        font-size: 0.9em;
-        font-weight: 600;
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-
-      /* 好處說明 */
-      .item-benefits {
-        background: rgba(76, 175, 80, 0.1);
-        padding: 12px;
-        border-radius: 12px;
-        border-left: 4px solid #4CAF50;
-        margin: 12px 0;
-        font-size: 0.95em;
-        line-height: 1.5;
-      }
-
-      /* 要點說明 */
-      .item-keys {
-        background: rgba(33, 150, 243, 0.1);
-        padding: 12px;
-        border-radius: 12px;
-        border-left: 4px solid #2196F3;
-        margin: 12px 0;
-        font-size: 0.95em;
-        line-height: 1.5;
-      }
-
-      /* 注意事項 */
-      .item-cautions {
-        background: rgba(255, 152, 0, 0.1);
-        padding: 12px;
-        border-radius: 12px;
-        border-left: 4px solid #FF9800;
-        margin: 12px 0;
-        font-size: 0.95em;
-        line-height: 1.5;
-      }
-
-      /* 媒體容器運動風格 */
-      .media-container {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        margin: 16px 0;
-      }
-
-      @media (min-width: 769px) {
-        .media-container {
-          flex-direction: row;
-          justify-content: center;
-          align-items: flex-start;
-        }
-      }
-
-      /* 圖片容器運動風格 */
-      .item-image-container {
-        text-align: center;
-        min-width: 300px;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-      }
-
+      /* 與原版相同的樣式 */
       .item-image {
         width: 100%;
-        max-width: 550px;
-        min-width: 300px;
-        height: 310px;
-        object-fit: cover;
-        border-radius: var(--border-radius);
-        box-shadow: var(--card-shadow);
-        transition: all 0.3s ease;
-        border: 3px solid transparent;
-        background: var(--success-gradient);
-        background-clip: padding-box;
+        max-width: 300px;
+        height: auto;
+        border-radius: 8px;
+        margin-bottom: 10px;
       }
-
-      .item-image:hover {
+      
+      .video-thumbnail {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+      }
+      
+      .video-thumbnail:hover {
         transform: scale(1.02);
-        box-shadow: var(--hover-shadow);
       }
-
-      /* 影片容器運動風格 */
-      .item-video-container {
-        text-align: center;
-        min-width: 300px;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-      }
-
-      .item-video {
-        width: 550px;
-        min-width: 300px;
-        height: 310px;
-        border-radius: var(--border-radius);
-        box-shadow: var(--card-shadow);
-        transition: all 0.3s ease;
-        border: 3px solid transparent;
-        background: var(--primary-gradient);
-        background-clip: padding-box;
-      }
-
-      .item-video:hover {
-        transform: scale(1.02);
-        box-shadow: var(--hover-shadow);
-      }
-
-      /* 標籤容器運動風格 */
-      .tag-container {
+      
+      .poses-grid {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 16px;
-        padding-top: 16px;
-        border-top: 1px solid rgba(0, 0, 0, 0.1);
+        gap: 16px;
+        padding: 16px;
       }
-
-      /* 運動風格標籤 */
-      .item-tag-1, .item-tag-2, .item-tag-3 {
-        --background: var(--primary-gradient);
-        --color: white;
-        font-weight: 600;
-        font-size: 0.8em;
-        padding: 8px 16px;
-        border-radius: 20px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
-        text-shadow: var(--text-shadow);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        position: relative;
-        overflow: hidden;
+      
+      .pose-card {
+        flex: 1 1 300px;
+        min-width: 280px;
       }
-
-      .item-tag-1::before, .item-tag-2::before, .item-tag-3::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        transition: left 0.5s;
+      
+      .filter-container {
+        padding: 16px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
       }
-
-      .item-tag-1:hover, .item-tag-2:hover, .item-tag-3:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      }
-
-      .item-tag-1:hover::before, .item-tag-2:hover::before, .item-tag-3:hover::before {
-        left: 100%;
-      }
-
-      .item-tag-2 {
-        --background: var(--secondary-gradient);
-      }
-
-      .item-tag-3 {
-        --background: var(--success-gradient);
-      }
-
-      /* 響應式設計 - 桌面大螢幕 */
-      @media (min-width: 1201px) {
-        .media-container {
-          justify-content: center;
-          gap: 20px;
-          align-items: flex-start;
-        }
-        
-        .item-image-container {
-          flex: 0 0 550px;
-        }
-        
-        .item-video-container {
-          flex: 0 0 550px;
-        }
-        
-        .item-image {
-          width: 550px;
-          height: 310px;
-        }
-        
-        .item-video {
-          width: 550px;
-          height: 310px;
-        }
-      }
-
-      /* 響應式設計 - 中等螢幕 (平板) */
-      @media (max-width: 1200px) and (min-width: 769px) {
-        .media-container {
-          justify-content: center;
-          gap: 16px;
-          align-items: flex-start;
-        }
-        
-        .item-image-container {
-          flex: 0 0 400px;
-        }
-        
-        .item-video-container {
-          flex: 0 0 400px;
-        }
-        
-        .item-image {
-          width: 400px;
-          height: 225px;
-          min-width: auto;
-        }
-        
-        .item-video {
-          width: 400px;
-          height: 225px;
-          min-width: auto;
-        }
-      }
-
-      /* 響應式設計 - 大型手機 (Galaxy Note, iPhone 12 Pro Max: 412-428px) */
-      @media (max-width: 768px) and (min-width: 415px) {
-        .media-container {
-          flex-direction: column;
-          gap: 12px;
-          align-items: center;
-        }
-        
-        .item-content {
-          padding: 16px;
-        }
-        
-        .item-pose {
-          font-size: 1.2em;
-        }
-        
-        .item-image-container, .item-video-container {
-          min-width: auto;
-          width: 100%;
-          max-width: 380px;
-        }
-        
-        .item-image {
-          width: 100%;
-          max-width: 380px;
-          height: 214px;
-          min-width: auto;
-        }
-        
-        .item-video {
-          width: 100%;
-          max-width: 380px;
-          height: 214px;
-          min-width: auto;
-        }
-      }
-
-      /* 響應式設計 - 中型手機 (iPhone 6/7/8, Galaxy S5: 360-375px) */
-      @media (max-width: 414px) and (min-width: 361px) {
-        .media-container {
-          flex-direction: column;
-          gap: 10px;
-          align-items: center;
-        }
-        
-        .item-content {
-          padding: 14px;
-        }
-        
-        .item-pose {
-          font-size: 1.1em;
-        }
-        
-        .item-image-container, .item-video-container {
-          min-width: auto;
-          width: 100%;
-          max-width: 340px;
-        }
-        
-        .item-image {
-          width: 100%;
-          max-width: 340px;
-          height: 191px;
-          min-width: auto;
-        }
-        
-        .item-video {
-          width: 100%;
-          max-width: 340px;
-          height: 191px;
-          min-width: auto;
-        }
-      }
-
-      /* 響應式設計 - 小型手機 (iPhone 5: 320px) */
-      @media (max-width: 360px) {
-        .media-container {
-          flex-direction: column;
-          gap: 8px;
-          align-items: center;
-        }
-        
-        .item-content {
-          padding: 12px;
-        }
-        
-        .item-pose {
-          font-size: 1em;
-        }
-        
-        .item-image-container, .item-video-container {
-          min-width: auto;
-          width: 100%;
-          max-width: 300px;
-        }
-        
-        .item-image {
-          width: 100%;
-          max-width: 300px;
-          height: 169px;
-          min-width: auto;
-        }
-        
-        .item-video {
-          width: 100%;
-          max-width: 300px;
-          height: 169px;
-          min-width: auto;
-        }
-      }
-
-      /* 動畫效果 */
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .list-item {
-        animation: fadeInUp 0.6s ease forwards;
-      }
-
-      /* 滾動條美化 */
-      ion-content::-webkit-scrollbar {
-        width: 8px;
-      }
-
-      ion-content::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 4px;
-      }
-
-      ion-content::-webkit-scrollbar-thumb {
-        background: var(--primary-gradient);
-        border-radius: 4px;
-      }
-
-      ion-content::-webkit-scrollbar-thumb:hover {
-        background: var(--secondary-gradient);
-      }
-
-      /* Assignment 2.2 認證按鈕樣式 */
-      #auth-btn {
-        --color: white;
-        --background: rgba(255, 255, 255, 0.2);
-        --border-radius: 20px;
-        margin: 0 8px;
-      }
-
-      /* Assignment 2.2 收藏按鈕樣式 */
-      .bookmark-btn {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        --background: rgba(255, 255, 255, 0.9);
-        --color: #666;
-        --border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        backdrop-filter: blur(10px);
-        transition: all 0.3s ease;
-        z-index: 10;
-      }
-
-      .bookmark-btn.bookmarked {
-        --background: var(--secondary-gradient);
-        --color: white;
-      }
-
-      .bookmark-btn:hover {
-        transform: scale(1.1);
-      }
-
-      /* Assignment 2.2 分頁控制樣式 */
-      #pagination-controls ion-button {
-        --background: var(--primary-gradient);
-        --color: white;
-        --border-radius: 20px;
-        min-width: 100px;
-      }
-
-      #pagination-info {
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 15px;
-        margin: 8px 16px;
-        box-shadow: var(--card-shadow);
-      }
-
-      /* 認證模態框輸入框樣式 */
-      #auth-modal ion-item {
-        --background: rgba(255, 255, 255, 0.95);
-        --border-radius: 12px;
-        margin-bottom: 16px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      #auth-modal ion-input {
-        --placeholder-color: #999;
-        --color: #333;
-        --padding-start: 16px;
-        --padding-end: 16px;
-        font-size: 16px;
-      }
-
-      #auth-modal ion-input:focus-within {
-        --placeholder-color: #666;
-      }
-
-      /* 成功訊息 Toast 樣式 */
-      .toast-message {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--success-gradient);
-        color: white;
-        padding: 16px 24px;
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        z-index: 10000;
-        transform: translateX(400px);
-        opacity: 0;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-      }
-
-      .toast-message.show {
-        transform: translateX(0);
-        opacity: 1;
-      }
-
-      .toast-content {
+      
+      .filter-row {
         display: flex;
+        gap: 16px;
         align-items: center;
-        gap: 12px;
-        font-weight: 600;
-        font-size: 16px;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        flex-wrap: wrap;
       }
-
-      .toast-icon {
-        font-size: 24px;
-        color: rgba(255, 255, 255, 0.9);
+      
+      .filter-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
       }
-
-      /* Toast 動畫效果 */
-      @keyframes slideInRight {
-        from {
-          transform: translateX(400px);
-          opacity: 0;
+      
+      .filter-item label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+      }
+      
+      @media (max-width: 768px) {
+        .filter-row {
+          flex-direction: column;
+          align-items: stretch;
         }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-
-      @keyframes slideOutRight {
-        from {
-          transform: translateX(0);
-          opacity: 1;
-        }
-        to {
-          transform: translateX(400px);
-          opacity: 0;
-        }
-      }
-
-      .toast-message.slide-in {
-        animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-      }
-
-      .toast-message.slide-out {
-        animation: slideOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-      }
-
-      /* 響應式設計 */
-      @media (max-width: 480px) {
-        .toast-message {
-          top: 10px;
-          right: 10px;
-          left: 10px;
-          transform: translateY(-100px);
-        }
-
-        .toast-message.show {
-          transform: translateY(0);
-        }
-
-        @keyframes slideInRight {
-          from {
-            transform: translateY(-100px);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-
-        @keyframes slideOutRight {
-          from {
-            transform: translateY(0);
-            opacity: 1;
-          }
-          to {
-            transform: translateY(-100px);
-            opacity: 0;
-          }
-        }
-      }
-
-      /* 登出確認模態框樣式 */
-      #logout-confirm-modal {
-        --width: 400px;
-        --height: auto;
-        --border-radius: 16px;
-        --background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
-      }
-
-      .logout-confirm-content {
-        max-width: 320px;
-        width: 100%;
-      }
-
-      .logout-icon {
-        font-size: 64px;
-        color: #ff6b6b;
-        margin-bottom: 16px;
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-
-      .logout-confirm-content h2 {
-        color: #2c3e50;
-        font-weight: bold;
-        margin: 0 0 8px 0;
-        font-size: 1.5em;
-        background: var(--primary-gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-
-      /* 登出確認按鈕樣式 */
-      #logout-confirm-modal ion-button {
-        --border-radius: 12px;
-        font-weight: 600;
-        text-transform: none;
-        min-height: 48px;
-        margin: 0;
-      }
-
-      .logout-buttons {
-        display: flex !important;
-        gap: 16px !important;
-        width: 100% !important;
-        max-width: 300px !important;
-        justify-content: space-between;
-      }
-
-      .logout-buttons ion-button {
-        flex: 1 !important;
-        margin: 0 !important;
-      }
-
-      #logout-confirm-modal ion-toolbar {
-        --background: var(--primary-gradient);
-        --color: white;
-      }
-
-      #logout-confirm-modal ion-title {
-        font-weight: bold;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-      }
-
-      /* 響應式設計 */
-      @media (max-width: 480px) {
-        #logout-confirm-modal {
-          --width: 90%;
-        }
-
-        .logout-confirm-content {
-          max-width: 280px;
-        }
-
-        .logout-icon {
-          font-size: 48px;
+        
+        .filter-item {
+          width: 100%;
         }
       }
     </style>
   </head>
   <body>
     <ion-app>
+      <!-- Header -->
       <ion-header>
         <ion-toolbar>
-          <ion-title>瑜伽動作清單</ion-title>
-          <!-- Assignment 2.2 認證按鈕 -->
-          <div slot="end" style="display: flex; gap: 8px; align-items: center;">
-            <ion-button id="auth-btn" fill="clear">
-              <ion-icon name="person-outline"></ion-icon>
-              登入
-            </ion-button>
-            <!-- 登出按鈕，初始隱藏 -->
-            <ion-button id="logout-btn" fill="clear" color="danger" style="display: none;" onclick="performLogout()">
-              <ion-icon name="log-out-outline"></ion-icon>
-              登出
-            </ion-button>
-          </div>
+          <ion-title>瑜伽動作應用</ion-title>
+          <ion-buttons slot="end">
+            <ion-button id="auth-btn">登入</ion-button>
+          </ion-buttons>
         </ion-toolbar>
-        <ion-searchbar placeholder="搜尋..."></ion-searchbar>
-        <ion-item>
-          <ion-select label="分類" interface="popover">
-            <ion-select-option value="">全部</ion-select-option>
-            <!-- 根據主題加入分類選項 -->
-          </ion-select>
-        </ion-item>
-        <!-- Assignment 2.2 分頁控制 -->
-        <ion-item>
-          <ion-label>每頁顯示:</ion-label>
-          <ion-select id="limit-select" value="10" slot="end">
-            <ion-select-option value="5">5</ion-select-option>
-            <ion-select-option value="10">10</ion-select-option>
-            <ion-select-option value="20">20</ion-select-option>
-          </ion-select>
-        </ion-item>
       </ion-header>
 
+      <!-- Content -->
       <ion-content>
-        <!-- Assignment 2.2 分頁顯示 -->
-        <div id="pagination-info" style="text-align: center; padding: 8px; color: #666; font-size: 0.9em;">
-          頁面 1 / 1，共 0 項
-        </div>
-      
-        <ion-list>
-          <!-- 清單項目範本 -->
-          <ion-item class="list-item">
-            <div class="item-content">
-              <!-- Assignment 2.2 收藏按鈕 -->
-              <ion-button class="bookmark-btn" fill="clear" size="small">
-                <ion-icon name="heart-outline"></ion-icon>
-              </ion-button>
-              <div class="item-pose">Pose</div>
-              <div class="item-level">Level</div>
-              <div class="item-benefits">Benefits</div>
-              <div class="item-keys">Keys</div>
-              <div class="item-cautions">Cautions</div>
-              <div class="media-container">
-                <div class="item-image-container">
-                  <img class="item-image" src="" alt="Yoga Pose" style="width: 100%; max-width: 300px; height: auto; border-radius: 8px; margin-top: 10px;">
-                </div>
-                <div class="item-video-container">
-                  <iframe class="item-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
-              </div>
-              <div class="tag-container">
-                <ion-chip size="small" class="item-tag-1">標籤1</ion-chip>
-                <ion-chip size="small" class="item-tag-2">標籤2</ion-chip>
-                <ion-chip size="small" class="item-tag-3">標籤3</ion-chip>
-                <!-- 標籤 -->
-              </div>
+        <!-- 搜索和篩選區域 -->
+        <div class="filter-container">
+          <div class="filter-row">
+            <div class="filter-item" style="flex: 2;">
+              <label>搜索瑜伽動作</label>
+              <ion-searchbar id="search-bar" placeholder="搜索動作名稱、描述或好處..."></ion-searchbar>
             </div>
-          </ion-item>
-        </ion-list>
+            
+            <div class="filter-item">
+              <label>分類篩選</label>
+              <ion-select id="category-select" placeholder="所有分類">
+                <ion-select-option value="">所有分類</ion-select-option>
+                <ion-select-option value="站姿式">站姿式</ion-select-option>
+                <ion-select-option value="坐姿式">坐姿式</ion-select-option>
+                <ion-select-option value="平衡式">平衡式</ion-select-option>
+                <ion-select-option value="後彎式">後彎式</ion-select-option>
+                <ion-select-option value="前彎式">前彎式</ion-select-option>
+                <ion-select-option value="扭轉式">扭轉式</ion-select-option>
+                <ion-select-option value="倒立式">倒立式</ion-select-option>
+                <ion-select-option value="休息式">休息式</ion-select-option>
+                <ion-select-option value="開髖式">開髖式</ion-select-option>
+              </ion-select>
+            </div>
+            
+            <div class="filter-item">
+              <label>每頁顯示</label>
+              <ion-select id="limit-select" value="10">
+                <ion-select-option value="5">5 項</ion-select-option>
+                <ion-select-option value="10">10 項</ion-select-option>
+                <ion-select-option value="20">20 項</ion-select-option>
+                <ion-select-option value="50">50 項</ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 載入狀態 -->
+        <div id="loading-container" style="text-align: center; padding: 40px;">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p id="loading-message">載入瑜伽動作中...</p>
+        </div>
         
-        <!-- Assignment 2.2 分頁控制 -->
-        <div id="pagination-controls" style="display: flex; justify-content: center; gap: 8px; padding: 16px;">
-          <ion-button id="prev-btn" fill="outline" disabled>
-            <ion-icon name="chevron-back-outline" slot="start"></ion-icon>
-            上一頁
-          </ion-button>
-          <ion-button id="next-btn" fill="outline">
-            下一頁
-            <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
-          </ion-button>
+        <!-- 錯誤狀態 -->
+        <div id="error-container" style="display: none; text-align: center; padding: 40px;">
+          <p id="error-message">載入失敗</p>
+          <ion-button id="retry-btn" onclick="loadData()">重試</ion-button>
+        </div>
+        
+        <!-- 數據顯示區域 -->
+        <div id="poses-list" style="display: none;">
+          <!-- 瑜伽動作卡片將在這裡顯示 -->
+        </div>
+        
+        <!-- 分頁信息和載入更多 -->
+        <div id="pagination-container" style="display: none; text-align: center; padding: 20px;">
+          <p id="pagination-info">顯示第 1-10 項，共 50 項</p>
+          <ion-button id="load-more-btn" fill="outline" onclick="loadMoreData()">載入更多</ion-button>
+          <div id="load-more-error" style="display: none; color: red; margin-top: 10px;">載入失敗，請重試</div>
+          <div id="no-more-data" style="display: none; color: #666; margin-top: 10px;">沒有更多數據了</div>
         </div>
       </ion-content>
+
+      <!-- 登入/註冊模態框 -->
+      <ion-modal id="auth-modal">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title id="auth-title">登入</ion-title>
+            <ion-buttons slot="end">
+              <ion-button onclick="closeAuthModal()">
+                <ion-icon name="close"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        
+        <ion-content>
+          <ion-list>
+            <ion-item>
+              <ion-label position="stacked">電子郵件</ion-label>
+              <ion-input id="email-input" type="email" placeholder="輸入您的電子郵件"></ion-input>
+            </ion-item>
+            
+            <ion-item>
+              <ion-label position="stacked">密碼</ion-label>
+              <ion-input id="password-input" type="password" placeholder="輸入您的密碼"></ion-input>
+            </ion-item>
+            
+            <ion-item id="confirm-password-item" style="display: none;">
+              <ion-label position="stacked">確認密碼</ion-label>
+              <ion-input id="confirm-password-input" type="password" placeholder="再次輸入密碼"></ion-input>
+            </ion-item>
+          </ion-list>
+          
+          <div style="padding: 20px;">
+            <ion-button expand="block" id="auth-submit-btn" onclick="handleAuth()">登入</ion-button>
+            <ion-button expand="block" fill="clear" id="auth-toggle-btn" onclick="toggleAuthMode()">
+              還沒有帳號？註冊
+            </ion-button>
+          </div>
+        </ion-content>
+      </ion-modal>
+
+      <!-- 登出確認模態框 -->
+      <ion-modal id="logout-confirm-modal">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>確認登出</ion-title>
+          </ion-toolbar>
+        </ion-header>
+        
+        <ion-content>
+          <div style="padding: 20px; text-align: center;">
+            <p>您確定要登出嗎？</p>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+              <ion-button fill="outline" onclick="closeLogoutModal()">取消</ion-button>
+              <ion-button onclick="confirmLogout()">確認登出</ion-button>
+            </div>
+          </div>
+        </ion-content>
+      </ion-modal>
     </ion-app>
 
-    <!-- Assignment 2.2 成功訊息 Toast -->
-    <div id="success-toast" class="toast-message">
-      <div class="toast-content">
-        <ion-icon name="checkmark-circle" class="toast-icon"></ion-icon>
-        <span id="toast-text">操作成功！</span>
-      </div>
-    </div>
-
-    <!-- Assignment 2.2 確認登出模態框 -->
-    <ion-modal id="logout-confirm-modal">
-      <ion-header>
-        <ion-toolbar>
-          <ion-title>確認登出</ion-title>
-          <ion-button slot="end" fill="clear" onclick="closeLogoutModal()">
-            <ion-icon name="close"></ion-icon>
-          </ion-button>
-        </ion-toolbar>
-      </ion-header>
-      <ion-content style="padding: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-        <div class="logout-confirm-content">
-          <ion-icon name="log-out-outline" class="logout-icon"></ion-icon>
-          <h2 id="logout-username">用戶名</h2>
-          <p style="color: #666; margin: 16px 0 32px 0;">確定要登出嗎？</p>
-          <div class="logout-buttons" style="display: flex; gap: 16px; width: 100%; max-width: 300px;">
-            <ion-button 
-              fill="outline" 
-              expand="block" 
-              onclick="closeLogoutModal()"
-              style="--color: #666; --border-color: #ddd; flex: 1;"
-            >
-              取消
-            </ion-button>
-            <ion-button 
-              fill="solid" 
-              expand="block" 
-              onclick="confirmLogout()"
-              style="--background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); --color: white; flex: 1;"
-            >
-              確定
-            </ion-button>
-          </div>
-        </div>
-      </ion-content>
-    </ion-modal>
-
-    <!-- Assignment 2.2 認證模態框 -->
-    <ion-modal id="auth-modal">
-      <ion-header>
-        <ion-toolbar>
-          <ion-title id="auth-modal-title">登入</ion-title>
-          <ion-button slot="end" fill="clear" onclick="closeAuthModal()">
-            <ion-icon name="close"></ion-icon>
-          </ion-button>
-        </ion-toolbar>
-      </ion-header>
-      <ion-content style="padding: 20px;">
-        <form id="auth-form">
-          <ion-item>
-            <ion-input 
-              id="username" 
-              type="text" 
-              placeholder="用戶名稱" 
-              required
-              clear-input="true"
-            ></ion-input>
-          </ion-item>
-          <ion-item>
-            <ion-input 
-              id="password" 
-              type="password" 
-              placeholder="密碼" 
-              required
-              clear-input="true"
-            ></ion-input>
-          </ion-item>
-          <ion-button type="submit" expand="block" style="margin-top: 20px;">
-            <span id="auth-submit-text">登入</span>
-          </ion-button>
-          <ion-button 
-            type="button" 
-            fill="clear" 
-            expand="block" 
-            onclick="switchAuthMode()"
-            style="margin-top: 10px;"
-          >
-            <span id="auth-switch-text">還沒有帳號？註冊</span>
-          </ion-button>
-        </form>
-      </ion-content>
-    </ion-modal>
-
-    <script src="./dist/app.js"></script>
-    <script type="module">
-      // Assignment 2.1 + Assignment 2.2 整合功能
-
-      // Assignment 2.2 變數
+    <script>
+      // 全局變量
+      let allItems = [];
+      let filteredItems = [];
       let currentUser = null;
       let currentPage = 1;
       let itemsPerPage = 10;
-      let allItems = [];
-      let filteredItems = [];
-      let bookmarks = [];
       let isLoginMode = true;
-
-      // DOM 元素
-      const searchbar = document.querySelector('ion-searchbar');
-      const list = document.querySelector('ion-list');
-      const template = document.querySelector('.list-item');
-      const categorySelect = document.querySelector('ion-select');
-      const limitSelect = document.getElementById('limit-select');
-      const paginationInfo = document.getElementById('pagination-info');
-      const prevBtn = document.getElementById('prev-btn');
-      const nextBtn = document.getElementById('next-btn');
-      const authBtn = document.getElementById('auth-btn');
-      const authModal = document.getElementById('auth-modal');
-      const logoutModal = document.getElementById('logout-confirm-modal');
-
-      // 初始化應用
-      async function initializeApp() {
-        // 檢查登入狀態
-        await checkAuthStatus();
+      let bookmarks = [];
+      let hasMoreData = true;
+      
+      // API 函數 - 帶重試機制
+      async function fetchFromAPIWithRetry(page = 1, limit = 10) {
+        const maxRetries = 15;
         
-        // 設置事件監聽器
-        setupEventListeners();
-        
-        // 初始化數據
-        await initializeData();
-      }
-
-      // Assignment 2.2 認證功能
-      async function checkAuthStatus() {
-        const token = localStorage.getItem('auth_token');
-        const username = localStorage.getItem('username');
-        
-        if (token && username) {
-          currentUser = { username, token };
-          authBtn.innerHTML = `<ion-icon name="person"></ion-icon> ${username}`;
-          await loadBookmarks();
-        }
-      }
-
-      async function loadBookmarks() {
-        try {
-          // 嘗試從 API 加載收藏，失敗則使用本地存儲
-          const localBookmarks = localStorage.getItem('local_bookmarks');
-          bookmarks = localBookmarks ? JSON.parse(localBookmarks) : [];
-        } catch (error) {
-          console.log('使用本地收藏數據');
-          bookmarks = [];
-        }
-      }
-
-      // 設置事件監聽器
-      function setupEventListeners() {
-        // Assignment 2.1 搜索和分類功能
-        searchbar.addEventListener('ionInput', handleSearch);
-        categorySelect.addEventListener('ionChange', handleCategoryChange);
-        
-        // Assignment 2.2 分頁功能
-        limitSelect.addEventListener('ionChange', handleLimitChange);
-        prevBtn.addEventListener('click', goToPrevPage);
-        nextBtn.addEventListener('click', goToNextPage);
-        
-        // Assignment 2.2 認證功能
-        authBtn.addEventListener('click', openAuthModal);
-        document.getElementById('auth-form').addEventListener('submit', handleAuth);
-      }
-
-      // Assignment 2.1 搜索功能
-      function handleSearch(event) {
-        currentPage = 1;
-        filterAndDisplayItems();
-      }
-
-      // Assignment 2.1 分類功能
-      function handleCategoryChange(event) {
-        currentPage = 1;
-        filterAndDisplayItems();
-      }
-
-      // Assignment 2.2 分頁功能
-      function handleLimitChange(event) {
-        itemsPerPage = parseInt(event.detail.value);
-        currentPage = 1;
-        filterAndDisplayItems();
-      }
-
-      function goToPrevPage() {
-        if (currentPage > 1) {
-          currentPage--;
-          filterAndDisplayItems();
-        }
-      }
-
-      function goToNextPage() {
-        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-        if (currentPage < totalPages) {
-          currentPage++;
-          filterAndDisplayItems();
-        }
-      }
-
-      // 初始化數據
-      async function initializeData() {
-        try {
-          console.log('開始從 API 獲取數據...');
-          
-          // 使用全局的 LocalDataAdapter（來自編譯的 app.js）
-          if (typeof window.LocalDataAdapter !== 'undefined') {
-            const dataAdapter = new window.LocalDataAdapter();
-            const response = await dataAdapter.getYogaPoses({ page: 1, limit: 100 });
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            const url = `https://dae-mobile-assignment.hkit.cc/api/yoga-poses/?page=${page}&limit=${limit}`;
+            console.log(`API 嘗試 ${attempt}/${maxRetries}:`, url);
             
-            allItems = response.items.map((item, index) => ({
-              id: item.id || index + 1,
-              title: item.pose || item.title || item.sanskrit_name || '未知動作',
-              description: item.benefits || item.description || '無說明',
-              level: item.level || item.difficulty || '未指定',
-              benefits: Array.isArray(item.benefits) ? item.benefits.join('、') : (item.benefits || '無特定好處'),
-              keys: item.keys || '暫無要點資訊',
-              cautions: item.cautions || '暫無注意事項',
-              category: item.category || '其他',
-              tags: item.tags || [],
-              imageUrl: item.imageUrl || item.image_url,
-              videoUrl: item.videoUrl || item.video_url,
-              // 保持原始格式用於顯示
-              pose: `Pose : ${item.pose || item.sanskrit_name || '未知動作'}`,
-              originalLevel: `Level : ${item.level || item.difficulty || '未指定'}`,
-              originalBenefits: `Benefits : ${Array.isArray(item.benefits) ? item.benefits.join('、') : (item.benefits || '無特定好處')}`,
-              originalKeys: `Keys : ${item.keys || '暫無要點資訊'}`,
-              originalCautions: `Cautions : ${item.cautions || '暫無注意事項'}`
-            }));
-            
-            console.log('成功從 API 獲取數據，共', allItems.length, '項');
-          } else {
-            console.error('LocalDataAdapter 未定義，使用空數據');
-            allItems = [];
-          }
-          
-        } catch (error) {
-          console.error('API 數據加載失敗:', error);
-          console.log('使用空數據集');
-          allItems = [];
-        }
-
-        // 初始化分類選項
-        initializeCategoryOptions();
-        
-        // 顯示項目
-        filterAndDisplayItems();
-      }
-
-      // Assignment 2.1 分類選項初始化
-      function initializeCategoryOptions() {
-        const categories = [...new Set(allItems.map(item => item.category))];
-        
-        const allOption = categorySelect.querySelector('ion-select-option[value=""]');
-        categorySelect.innerHTML = '';
-        categorySelect.appendChild(allOption);
-        
-        categories.forEach(category => {
-          const option = document.createElement('ion-select-option');
-          option.value = category;
-          option.textContent = category;
-          categorySelect.appendChild(option);
-        });
-      }
-
-      // Assignment 2.1 + Assignment 2.2 過濾和顯示功能
-      function filterAndDisplayItems() {
-        const searchTerm = searchbar.value ? searchbar.value.toLowerCase() : '';
-        const selectedCategory = categorySelect.value;
-
-        // Assignment 2.1 過濾邏輯
-        filteredItems = allItems.filter(item => {
-          const searchMatch = !searchTerm || 
-            item.pose.toLowerCase().includes(searchTerm) ||
-            item.level.toLowerCase().includes(searchTerm) ||
-            item.benefits.toLowerCase().includes(searchTerm) ||
-            item.keys.toLowerCase().includes(searchTerm) ||
-            item.category.toLowerCase().includes(searchTerm) ||
-            (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
-          
-          const categoryMatch = !selectedCategory || item.category === selectedCategory;
-          
-          return searchMatch && categoryMatch;
-        });
-
-        displayCurrentPage();
-      }
-
-      // Assignment 2.2 分頁顯示
-      function displayCurrentPage() {
-        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const currentItems = filteredItems.slice(startIndex, endIndex);
-
-        // 更新分頁信息
-        paginationInfo.textContent = `頁面 ${currentPage} / ${totalPages || 1}，共 ${filteredItems.length} 項`;
-        
-        // 更新分頁按鈕狀態
-        prevBtn.disabled = currentPage <= 1;
-        nextBtn.disabled = currentPage >= totalPages;
-
-        // 清空列表
-        const templateClone = template.cloneNode(true);
-        list.innerHTML = '';
-
-        // Assignment 2.1 顯示邏輯 + Assignment 2.2 收藏功能
-        currentItems.forEach(item => {
-          const node = templateClone.cloneNode(true);
-          
-          // Assignment 2.1 原始顯示邏輯
-          node.querySelector('.item-pose').textContent = item.pose;
-          node.querySelector('.item-level').textContent = item.originalLevel;
-          node.querySelector('.item-benefits').textContent = item.originalBenefits;
-          node.querySelector('.item-keys').textContent = item.originalKeys;
-          node.querySelector('.item-cautions').textContent = item.originalCautions;
-          
-          // 圖片設置
-          const imageElement = node.querySelector('.item-image');
-          if (item.imageUrl) {
-            imageElement.src = item.imageUrl;
-            imageElement.alt = item.pose;
-            imageElement.style.display = 'block';
-          } else {
-            imageElement.style.display = 'none';
-          }
-          
-          // 影片設置
-          const videoElement = node.querySelector('.item-video');
-          const videoContainer = node.querySelector('.item-video-container');
-          if (item.videoUrl && item.videoUrl.includes('youtube.com/watch?v=')) {
-            const videoId = item.videoUrl.split('v=')[1].split('&')[0];
-            const embedUrl = `https://www.youtube.com/embed/${videoId}`;
-            videoElement.src = embedUrl;
-            videoContainer.style.display = 'block';
-          } else if (item.videoUrl && item.videoUrl !== 'videos/.mp4') {
-            videoElement.src = item.videoUrl;
-            videoContainer.style.display = 'block';
-          } else {
-            videoContainer.style.display = 'none';
-          }
-          
-          // Assignment 2.1 標籤功能
-          setupTags(node, item);
-          
-          // Assignment 2.2 收藏功能
-          setupBookmark(node, item);
-          
-          list.appendChild(node);
-        });
-      }
-
-      // Assignment 2.1 標籤設置
-      function setupTags(node, item) {
-        if (item.tags && item.tags.length > 0) {
-          ['item-tag-1', 'item-tag-2', 'item-tag-3'].forEach((className, index) => {
-            const tagElement = node.querySelector(`.${className}`);
-            if (item.tags[index]) {
-              tagElement.textContent = item.tags[index];
-              tagElement.style.display = 'inline-block';
-              tagElement.style.cursor = 'pointer';
-              tagElement.addEventListener('click', () => {
-                searchbar.value = item.tags[index];
-                handleSearch({ detail: { value: item.tags[index] } });
-              });
-            } else {
-              tagElement.style.display = 'none';
+            // 更新載入消息
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+              loadingMessage.textContent = `載入瑜伽動作中... (嘗試 ${attempt}/${maxRetries})`;
             }
-          });
-        } else {
-          node.querySelectorAll('.item-tag-1, .item-tag-2, .item-tag-3')
-            .forEach(tag => tag.style.display = 'none');
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+              throw new Error(`HTTP 錯誤: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('API 響應:', data);
+            
+            // 檢查是否是測試錯誤
+            if (data.error) {
+              console.log('收到測試錯誤，重試中...', data.error);
+              if (attempt < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                continue;
+              } else {
+                throw new Error(`API 測試錯誤: ${data.error}`);
+              }
+            }
+            
+            // 成功獲取數據
+            if (data.items && Array.isArray(data.items)) {
+              const totalItems = data.pagination?.total || data.items.length;
+              const currentTotal = (page - 1) * limit + data.items.length;
+              const hasMoreItems = data.pagination ? (currentTotal < totalItems) : (data.items.length === limit);
+              
+              console.log('分頁信息:', {
+                page,
+                limit,
+                itemsInResponse: data.items.length,
+                totalItems,
+                currentTotal,
+                hasMoreItems
+              });
+              
+              return {
+                items: data.items,
+                total: totalItems,
+                hasMore: hasMoreItems
+              };
+            } else {
+              throw new Error('無效的數據格式');
+            }
+            
+          } catch (error) {
+            console.log(`嘗試 ${attempt} 失敗:`, error.message);
+            
+            if (attempt < maxRetries) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            } else {
+              throw error;
+            }
+          }
         }
       }
-
-      // Assignment 2.2 收藏設置
-      function setupBookmark(node, item) {
-        const bookmarkBtn = node.querySelector('.bookmark-btn');
-        const isBookmarked = bookmarks.includes(item.id);
+      
+      // 顯示數據
+      function displayItems(items) {
+        console.log('顯示項目:', items.length);
+        const list = document.getElementById('poses-list');
+        const loading = document.getElementById('loading-container');
+        const pagination = document.getElementById('pagination-container');
         
-        // 設置收藏狀態
-        if (isBookmarked) {
-          bookmarkBtn.classList.add('bookmarked');
-          bookmarkBtn.querySelector('ion-icon').name = 'heart';
-        } else {
-          bookmarkBtn.classList.remove('bookmarked');
-          bookmarkBtn.querySelector('ion-icon').name = 'heart-outline';
+        if (!list) {
+          console.error('找不到 poses-list 元素');
+          return;
         }
         
-        // 收藏點擊事件
-        bookmarkBtn.addEventListener('click', async () => {
-          if (!currentUser) {
-            showToast('請先登入才能使用收藏功能', 'error');
+        // 如果是第一頁，清空列表
+        if (currentPage === 1) {
+          list.innerHTML = '<div class="poses-grid"></div>';
+        }
+        
+        const grid = list.querySelector('.poses-grid');
+        
+        items.forEach(item => {
+          const card = document.createElement('ion-card');
+          card.className = 'pose-card';
+          
+          card.innerHTML = `
+            <ion-card-header>
+              <ion-card-title>${item.title || item.sanskrit_name || '無標題'}</ion-card-title>
+              <ion-card-subtitle>
+                ${item.category || '未分類'} • ${item.difficulty || '未設定'} • ${item.duration_minutes ? item.duration_minutes + ' 分鐘' : '未設定時長'}
+              </ion-card-subtitle>
+            </ion-card-header>
+            
+            <ion-card-content>
+              ${item.image_url ? `
+                <img class="item-image" src="${item.image_url}" alt="${item.title || item.sanskrit_name}" loading="lazy">
+              ` : ''}
+              
+              <p><strong>梵文名:</strong> ${item.sanskrit_name || '無'}</p>
+              <p><strong>教練:</strong> ${item.instructor || '未設定'}</p>
+              <p><strong>說明:</strong> ${item.description || '無說明'}</p>
+              
+              ${item.benefits && Array.isArray(item.benefits) ? `
+                <p><strong>好處:</strong></p>
+                <ul>
+                  ${item.benefits.map(benefit => `<li>${benefit}</li>`).join('')}
+                </ul>
+              ` : ''}
+              
+              ${item.video_url ? `
+                <div style="margin-top: 10px;">
+                  <ion-button href="${item.video_url}" target="_blank" fill="outline" size="small">
+                    <ion-icon name="play-circle-outline" slot="start"></ion-icon>
+                    觀看視頻
+                  </ion-button>
+                </div>
+              ` : ''}
+              
+              <div style="margin-top: 10px;">
+                <ion-button fill="clear" size="small" onclick="toggleBookmark(${item.id})">
+                  <ion-icon name="${bookmarks.includes(item.id) ? 'bookmark' : 'bookmark-outline'}" slot="start"></ion-icon>
+                  ${bookmarks.includes(item.id) ? '已收藏' : '收藏'}
+                </ion-button>
+              </div>
+            </ion-card-content>
+          `;
+          
+          grid.appendChild(card);
+        });
+        
+        // 更新顯示狀態
+        loading.style.display = 'none';
+        list.style.display = 'block';
+        
+        // 更新分頁信息
+        updatePaginationInfo();
+        pagination.style.display = 'block';
+        
+        console.log('數據顯示完成');
+      }
+      
+      // 更新分頁信息
+      function updatePaginationInfo() {
+        const info = document.getElementById('pagination-info');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const noMoreData = document.getElementById('no-more-data');
+        const pagination = document.getElementById('pagination-container');
+        
+        const totalDisplayed = allItems.length;
+        const pageInfo = currentPage > 1 ? ` (第 ${currentPage} 頁)` : '';
+        
+        info.innerHTML = `
+          <strong>已顯示 ${totalDisplayed} 項瑜伽動作</strong>${pageInfo}
+          <br>
+          <small style="color: #666;">每頁載入 ${itemsPerPage} 項</small>
+        `;
+        
+        console.log('更新分頁信息:', {
+          totalDisplayed,
+          hasMoreData,
+          currentPage,
+          itemsPerPage,
+          pageInfo
+        });
+        
+        // 確保分頁容器顯示
+        pagination.style.display = 'block';
+        
+        if (hasMoreData) {
+          loadMoreBtn.style.display = 'block';
+          loadMoreBtn.disabled = false;
+          noMoreData.style.display = 'none';
+          console.log('顯示載入更多按鈕');
+        } else {
+          loadMoreBtn.style.display = 'none';
+          noMoreData.style.display = 'block';
+          noMoreData.innerHTML = `
+            <ion-icon name="checkmark-circle" style="color: #28a745; margin-right: 8px;"></ion-icon>
+            已載入所有瑜伽動作 (共 ${totalDisplayed} 項)
+          `;
+          console.log('顯示沒有更多數據提示');
+        }
+      }
+      
+      // 顯示錯誤
+      function showError(message) {
+        console.error('顯示錯誤:', message);
+        const loading = document.getElementById('loading-container');
+        const error = document.getElementById('error-container');
+        const errorMsg = document.getElementById('error-message');
+        
+        loading.style.display = 'none';
+        errorMsg.textContent = message;
+        error.style.display = 'block';
+      }
+      
+      // 載入數據
+      async function loadData() {
+        console.log('🚀 開始載入瑜伽動作數據...');
+        const loading = document.getElementById('loading-container');
+        const error = document.getElementById('error-container');
+        const list = document.getElementById('poses-list');
+        const pagination = document.getElementById('pagination-container');
+        
+        // 重置狀態
+        currentPage = 1;
+        allItems = [];
+        hasMoreData = true;
+        loading.style.display = 'block';
+        error.style.display = 'none';
+        list.style.display = 'none';
+        pagination.style.display = 'none';
+        
+        console.log(`載入參數: page=${currentPage}, limit=${itemsPerPage}`);
+        
+        try {
+          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage);
+          
+          if (!result.items || result.items.length === 0) {
+            showError('沒有找到瑜伽動作數據');
             return;
           }
           
-          try {
-            if (isBookmarked) {
-              await removeBookmark(item.id);
-            } else {
-              await addBookmark(item.id);
-            }
-            filterAndDisplayItems(); // 重新渲染
-          } catch (error) {
-            console.error('收藏操作失敗:', error);
-          }
-        });
-      }
-
-      // Assignment 2.2 收藏功能
-      async function addBookmark(itemId) {
-        if (!bookmarks.includes(itemId)) {
-          bookmarks.push(itemId);
-          localStorage.setItem('local_bookmarks', JSON.stringify(bookmarks));
+          // 設置初始數據
+          allItems = result.items;
+          hasMoreData = result.hasMore;
+          filteredItems = [...allItems];
+          
+          console.log(`✅ 首次載入成功: ${result.items.length} 項, hasMore: ${result.hasMore}`);
+          
+          displayItems(allItems);
+          
+        } catch (error) {
+          console.error('❌ 載入數據失敗:', error);
+          showError(`載入失敗: ${error.message}`);
         }
       }
-
-      async function removeBookmark(itemId) {
+      
+      // 載入更多數據
+      async function loadMoreData() {
+        if (!hasMoreData) {
+          console.log('沒有更多數據可載入');
+          return;
+        }
+        
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const loadMoreError = document.getElementById('load-more-error');
+        
+        try {
+          // 顯示載入狀態
+          loadMoreBtn.disabled = true;
+          loadMoreBtn.innerHTML = `
+            <ion-spinner name="crescent" style="width: 16px; height: 16px; margin-right: 8px;"></ion-spinner>
+            載入中...
+          `;
+          loadMoreError.style.display = 'none';
+          
+          console.log(`載入第 ${currentPage + 1} 頁數據...`);
+          currentPage++;
+          
+          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage);
+          
+          if (result.items.length === 0) {
+            // 沒有更多數據
+            hasMoreData = false;
+            updatePaginationInfo();
+            return;
+          }
+          
+          // 合併新數據
+          allItems = [...allItems, ...result.items];
+          hasMoreData = result.hasMore;
+          filteredItems = [...allItems];
+          
+          console.log(`成功載入 ${result.items.length} 項新數據，總計 ${allItems.length} 項`);
+          
+          // 顯示新數據（追加到現有列表）
+          displayItems(result.items);
+          
+        } catch (error) {
+          console.error('載入更多失敗:', error);
+          
+          // 回退頁碼（因為請求失敗）
+          currentPage--;
+          
+          // 顯示錯誤信息
+          loadMoreError.style.display = 'block';
+          loadMoreError.textContent = `載入失敗: ${error.message}`;
+          
+          // 3秒後隱藏錯誤信息
+          setTimeout(() => {
+            loadMoreError.style.display = 'none';
+          }, 3000);
+          
+        } finally {
+          // 恢復按鈕狀態
+          loadMoreBtn.disabled = false;
+          loadMoreBtn.innerHTML = '載入更多';
+        }
+      }
+      
+      // 收藏功能
+      function toggleBookmark(itemId) {
         const index = bookmarks.indexOf(itemId);
         if (index > -1) {
           bookmarks.splice(index, 1);
-          localStorage.setItem('local_bookmarks', JSON.stringify(bookmarks));
-        }
-      }
-
-      // Assignment 2.2 Toast 訊息功能
-      function showToast(message, type = 'success') {
-        const toast = document.getElementById('success-toast');
-        const toastText = document.getElementById('toast-text');
-        const toastIcon = toast.querySelector('.toast-icon');
-        
-        // 設置訊息內容
-        toastText.textContent = message;
-        
-        // 根據類型設置圖標
-        if (type === 'success') {
-          toastIcon.name = 'checkmark-circle';
-          toast.style.background = 'var(--success-gradient)';
-        } else if (type === 'error') {
-          toastIcon.name = 'close-circle';
-          toast.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)';
-        }
-        
-        // 顯示動畫
-        toast.classList.add('show', 'slide-in');
-        
-        // 3秒後自動隱藏
-        setTimeout(() => {
-          toast.classList.remove('slide-in');
-          toast.classList.add('slide-out');
-          
-          // 動畫完成後移除類別
-          setTimeout(() => {
-            toast.classList.remove('show', 'slide-out');
-          }, 400);
-        }, 3000);
-      }
-
-      // Assignment 2.2 認證功能
-      function openAuthModal() {
-        if (currentUser) {
-          // 已登入，顯示美觀的登出確認對話框
-          openLogoutModal();
         } else {
-          // 未登入，顯示登入模態框
-          authModal.present();
+          bookmarks.push(itemId);
+        }
+        
+        // 重新渲染以更新收藏狀態
+        const list = document.getElementById('poses-list');
+        list.innerHTML = '<div class="poses-grid"></div>';
+        displayItems(allItems);
+      }
+      
+      // 搜索和篩選功能
+      function filterItems() {
+        const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+        const selectedCategory = document.getElementById('category-select').value;
+        
+        console.log('篩選條件:', { searchTerm, selectedCategory });
+        
+        filteredItems = allItems.filter(item => {
+          const matchesSearch = !searchTerm || 
+            (item.title && item.title.toLowerCase().includes(searchTerm)) ||
+            (item.sanskrit_name && item.sanskrit_name.toLowerCase().includes(searchTerm)) ||
+            (item.description && item.description.toLowerCase().includes(searchTerm)) ||
+            (item.benefits && Array.isArray(item.benefits) && item.benefits.some(b => b.toLowerCase().includes(searchTerm)));
+          
+          const matchesCategory = !selectedCategory || item.category === selectedCategory;
+          
+          return matchesSearch && matchesCategory;
+        });
+        
+        console.log(`篩選結果: ${filteredItems.length}/${allItems.length} 項`);
+        
+        // 重新顯示篩選後的數據
+        const list = document.getElementById('poses-list');
+        list.innerHTML = '<div class="poses-grid"></div>';
+        displayItems(filteredItems);
+        
+        // 更新分頁信息（篩選時隱藏載入更多按鈕）
+        const pagination = document.getElementById('pagination-container');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const noMoreData = document.getElementById('no-more-data');
+        const info = document.getElementById('pagination-info');
+        
+        if (searchTerm || selectedCategory) {
+          // 有篩選條件時，隱藏載入更多功能
+          loadMoreBtn.style.display = 'none';
+          noMoreData.style.display = 'none';
+          info.innerHTML = `
+            <strong>篩選結果: ${filteredItems.length} 項</strong>
+            <br>
+            <small style="color: #666;">清除篩選條件可載入更多數據</small>
+          `;
+        } else {
+          // 沒有篩選條件時，恢復分頁功能
+          updatePaginationInfo();
         }
       }
-
-      // 登出確認對話框功能
-      function openLogoutModal() {
-        const logoutUsername = document.getElementById('logout-username');
-        logoutUsername.textContent = currentUser.username;
-        logoutModal.present();
+      
+      // 認證相關功能（簡化版）
+      function openAuthModal() {
+        document.getElementById('auth-modal').present();
       }
-
-      function closeLogoutModal() {
-        logoutModal.dismiss();
-      }
-
-      function confirmLogout() {
-        closeLogoutModal();
-        logout();
-      }
-
-      // 將函數設為全局可訪問
-      window.closeLogoutModal = closeLogoutModal;
-      window.confirmLogout = confirmLogout;
-
+      
       function closeAuthModal() {
-        authModal.dismiss();
+        document.getElementById('auth-modal').dismiss();
       }
-
-      window.closeAuthModal = closeAuthModal;
-
-      function switchAuthMode() {
+      
+      function closeLogoutModal() {
+        document.getElementById('logout-confirm-modal').dismiss();
+      }
+      
+      function toggleAuthMode() {
         isLoginMode = !isLoginMode;
-        const title = document.getElementById('auth-modal-title');
-        const submitText = document.getElementById('auth-submit-text');
-        const switchText = document.getElementById('auth-switch-text');
+        const title = document.getElementById('auth-title');
+        const submitBtn = document.getElementById('auth-submit-btn');
+        const toggleBtn = document.getElementById('auth-toggle-btn');
+        const confirmPasswordItem = document.getElementById('confirm-password-item');
         
         if (isLoginMode) {
           title.textContent = '登入';
-          submitText.textContent = '登入';
-          switchText.textContent = '還沒有帳號？註冊';
+          submitBtn.textContent = '登入';
+          toggleBtn.textContent = '還沒有帳號？註冊';
+          confirmPasswordItem.style.display = 'none';
         } else {
           title.textContent = '註冊';
-          submitText.textContent = '註冊';
-          switchText.textContent = '已有帳號？登入';
+          submitBtn.textContent = '註冊';
+          toggleBtn.textContent = '已有帳號？登入';
+          confirmPasswordItem.style.display = 'block';
         }
       }
-
-      window.switchAuthMode = switchAuthMode;
-
-      async function handleAuth(event) {
-        event.preventDefault();
-        
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        
-        try {
-          // 本地模擬認證
-          const mockToken = 'mock_token_' + Date.now();
-          
-          currentUser = { username, token: mockToken };
-          localStorage.setItem('auth_token', mockToken);
-          localStorage.setItem('username', username);
-          
-          authBtn.innerHTML = `<ion-icon name="person"></ion-icon> ${username}`;
-          
-          await loadBookmarks();
+      
+      function handleAuth() {
+        // 簡化的認證處理
+        const email = document.getElementById('email-input').value;
+        if (email) {
+          currentUser = { email };
+          document.getElementById('auth-btn').textContent = '登出';
           closeAuthModal();
-          
-          // 顯示美觀的成功訊息
-          showToast(isLoginMode ? '登入成功！' : '註冊成功！', 'success');
-          
-          // 重新顯示項目以更新收藏狀態
-          filterAndDisplayItems();
-          
-        } catch (error) {
-          showToast('認證失敗：' + error.message, 'error');
         }
       }
-
-      function logout() {
+      
+      function confirmLogout() {
         currentUser = null;
-        bookmarks = [];
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('username');
-        localStorage.removeItem('local_bookmarks');
-        
-        authBtn.innerHTML = '<ion-icon name="person-outline"></ion-icon> 登入';
-        
-        // 重新顯示項目以移除收藏狀態
-        filterAndDisplayItems();
-        
-        showToast('已成功登出', 'success');
+        document.getElementById('auth-btn').textContent = '登入';
+        closeLogoutModal();
       }
-
+      
       // 初始化應用
-      initializeApp();
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM 已加載，開始初始化...');
+        
+        // 設置事件監聽器
+        document.getElementById('search-bar').addEventListener('ionInput', filterItems);
+        document.getElementById('category-select').addEventListener('ionChange', filterItems);
+        document.getElementById('limit-select').addEventListener('ionChange', (e) => {
+          itemsPerPage = parseInt(e.detail.value);
+          loadData(); // 重新載入數據
+        });
+        
+        document.getElementById('auth-btn').addEventListener('click', () => {
+          if (currentUser) {
+            document.getElementById('logout-confirm-modal').present();
+          } else {
+            openAuthModal();
+          }
+        });
+        
+        // 開始載入數據
+        loadData();
+      });
     </script>
   </body>
 </html>
