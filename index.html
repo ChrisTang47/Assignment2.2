@@ -336,33 +336,20 @@
           <!-- 瑜伽動作卡片將在這裡顯示 -->
         </div>
         
-        <!-- 分頁信息和載入更多 -->
+        <!-- 分頁信息和無限滾動 -->
         <div id="pagination-container" style="display: none; text-align: center; padding: 20px;">
           <p id="pagination-info">顯示第 1-10 項，共 50 項</p>
           
-          <!-- 無限滾動載入指示器 -->
+          <!-- Step 24: 無限滾動載入指示器 -->
           <div id="infinite-scroll-loading" style="display: none; padding: 20px; text-align: center;">
             <ion-spinner name="crescent" style="margin-right: 10px; --color: #3880ff;"></ion-spinner>
-            <span style="color: #3880ff; font-size: 14px;">正在載入更多瑜伽動作...</span>
+            <span style="color: #3880ff; font-size: 14px;">向下滾動自動載入更多...</span>
           </div>
           
-          <!-- 載入錯誤指示器 -->
+          <!-- 無限滾動載入錯誤提示 -->
           <div id="load-more-error" style="display: none; color: #e53e3e; margin-top: 10px; text-align: center;">
             <ion-icon name="alert-circle-outline" style="margin-right: 5px;"></ion-icon>
-            <span>載入失敗，請向下滾動重試</span>
-          </div>
-          
-          <!-- 測試無限滾動控制 -->
-          <div style="padding: 15px; text-align: center; border: 1px dashed #ccc; margin: 10px 0;">
-            <p style="margin: 5px 0; color: #666; font-size: 12px;">無限滾動測試工具</p>
-            <ion-button size="small" fill="outline" onclick="testInfiniteScroll()">
-              <ion-icon name="arrow-down" slot="start"></ion-icon>
-              手動載入更多
-            </ion-button>
-            <ion-button size="small" fill="outline" onclick="debugScrollInfo()" style="margin-left: 10px;">
-              <ion-icon name="information-circle" slot="start"></ion-icon>
-              滾動狀態
-            </ion-button>
+            <span>載入失敗，繼續向下滾動將自動重試</span>
           </div>
           
           <!-- 無更多數據指示器 -->
@@ -946,11 +933,7 @@
           loadMoreError.style.display = 'block';
           loadMoreError.innerHTML = `
             <ion-icon name="warning" style="color: #dc3545; margin-right: 5px;"></ion-icon>
-            載入失敗: ${error.message}
-            <ion-button size="small" fill="clear" onclick="loadMoreDataInfinite()" style="margin-left: 10px;">
-              <ion-icon name="refresh" slot="start"></ion-icon>
-              重試
-            </ion-button>
+            載入失敗: ${error.message} - 繼續向下滾動將自動重試
           `;
           
         } finally {
@@ -1258,11 +1241,7 @@
           loadMoreError.innerHTML = `
             <div style="color: #dc3545; padding: 8px; text-align: center;">
               <ion-icon name="alert-circle" style="margin-right: 4px;"></ion-icon>
-              重試失敗: ${error.message}
-              <ion-button size="small" fill="clear" onclick="autoRetryLoadMore()" style="margin-left: 10px;">
-                <ion-icon name="refresh" slot="start"></ion-icon>
-                自動重試
-              </ion-button>
+              重試失敗: ${error.message} - 繼續向下滾動將自動重試
             </div>
           `;
         }
@@ -1294,37 +1273,6 @@
           autoLoadCounter++; // 增加計數器
           loadMoreDataInfinite();
         }
-      }
-      
-      // 測試無限滾動功能
-      function testInfiniteScroll() {
-        console.log('🧪 手動測試無限滾動');
-        loadMoreDataInfinite();
-      }
-      
-      // 調試滾動信息
-      function debugScrollInfo() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-        
-        const info = {
-          scrollTop: Math.round(scrollTop),
-          windowHeight,
-          documentHeight,
-          threshold: CONFIG.INFINITE_SCROLL_THRESHOLD,
-          triggerPoint: documentHeight - CONFIG.INFINITE_SCROLL_THRESHOLD,
-          shouldTrigger: scrollTop + windowHeight >= documentHeight - CONFIG.INFINITE_SCROLL_THRESHOLD,
-          currentPage,
-          allItemsLength: allItems.length,
-          isLoadingMore,
-          hasMoreData,
-          isInfiniteScrollEnabled,
-          autoLoadCounter
-        };
-        
-        console.table(info);
-        alert(`滾動調試信息:\n頁面高度: ${documentHeight}px\n視窗高度: ${windowHeight}px\n滾動位置: ${Math.round(scrollTop)}px\n觸發點: ${info.triggerPoint}px\n當前頁: ${currentPage}\n數據項目: ${allItems.length}\n有更多數據: ${hasMoreData}\n無限滾動啟用: ${isInfiniteScrollEnabled}\n正在載入: ${isLoadingMore}`);
       }
 
       // API搜索功能 - Step 20
