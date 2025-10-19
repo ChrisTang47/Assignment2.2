@@ -508,6 +508,12 @@
       let bookmarks = [];
       let hasMoreData = true;
       
+      // 認證和會話管理
+      const AUTH_STORAGE_KEY = 'yoga_app_auth';
+      const USER_STORAGE_KEY = 'yoga_app_user';
+      const BOOKMARKS_STORAGE_KEY = 'yoga_app_bookmarks';
+      const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24小時
+      
       // 錯誤處理統計
       let errorStats = {
         totalErrors: 0,
@@ -646,11 +652,28 @@
                 </div>
               ` : ''}
               
-              <div style="margin-top: 10px;">
-                <ion-button fill="clear" size="small" onclick="toggleBookmark(${item.id})">
-                  <ion-icon name="${bookmarks.includes(item.id) ? 'bookmark' : 'bookmark-outline'}" slot="start"></ion-icon>
-                  ${bookmarks.includes(item.id) ? '已收藏' : '收藏'}
+              <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <ion-button 
+                  fill="clear" 
+                  size="small" 
+                  onclick="toggleBookmark(${item.id})"
+                  data-bookmark-id="${item.id}"
+                  color="medium">
+                  <ion-icon name="bookmark-outline" slot="start"></ion-icon>
+                  收藏
                 </ion-button>
+                
+                ${currentUser ? `
+                  <ion-chip color="primary" size="small">
+                    <ion-icon name="person"></ion-icon>
+                    <ion-label>已登錄</ion-label>
+                  </ion-chip>
+                ` : `
+                  <ion-chip color="medium" size="small">
+                    <ion-icon name="person-outline"></ion-icon>
+                    <ion-label>訪客</ion-label>
+                  </ion-chip>
+                `}
               </div>
             </ion-card-content>
           `;
@@ -661,6 +684,11 @@
         // 更新顯示狀態
         loading.style.display = 'none';
         list.style.display = 'block';
+        
+        // 更新書籤UI狀態
+        if (currentUser) {
+          updateBookmarkUI();
+        }
         
         // 更新分頁信息
         updatePaginationInfo();
@@ -1262,15 +1290,24 @@
           const password = document.getElementById('login-password').value;
           
           // 模擬API調用（稍後替換為真實API）
-          await simulateLogin(username, password);
+          const response = await simulateLogin(username, password);
           
           // 登錄成功
-          currentUser = { username, email: username.includes('@') ? username : `${username}@example.com` };
-          document.getElementById('auth-btn').textContent = '登出';
+          currentUser = response.user;
+          saveAuthSession(currentUser, response.token);
+          
+          // 載入用戶書籤
+          bookmarks = loadUserBookmarks();
+          
+          // 更新UI
+          updateUserUI();
           closeAuthModal();
           
           // 清空表單
           document.getElementById('login-form').reset();
+          
+          // 顯示歡迎消息
+          showSuccessMessage(`歡迎回來，${getUserDisplayName()}！`);
           
         } catch (error) {
           showAuthError(error.message);
@@ -1302,15 +1339,25 @@
           const password = document.getElementById('register-password').value;
           
           // 模擬API調用（稍後替換為真實API）
-          await simulateRegister(username, email, password);
+          const response = await simulateRegister(username, email, password);
           
           // 註冊成功，自動登錄
-          currentUser = { username, email };
-          document.getElementById('auth-btn').textContent = '登出';
+          currentUser = response.user;
+          saveAuthSession(currentUser, response.token);
+          
+          // 初始化用戶書籤
+          bookmarks = [];
+          saveUserBookmarks(bookmarks);
+          
+          // 更新UI
+          updateUserUI();
           closeAuthModal();
           
           // 清空表單
           document.getElementById('register-form').reset();
+          
+          // 顯示歡迎消息
+          showSuccessMessage(`註冊成功！歡迎加入，${getUserDisplayName()}！`);
           
         } catch (error) {
           showAuthError(error.message);
@@ -1321,15 +1368,96 @@
         }
       }
       
+      // 會話管理函數
+      function saveAuthSession(user, token = null) {
+        const authData = {
+          user: user,
+          token: token,
+          timestamp: Date.now(),
+          expiresAt: Date.now() + SESSION_TIMEOUT
+        };
+        
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+        
+        console.log('會話已保存:', authData);
+      }
+      
+      function loadAuthSession() {
+        try {
+          const authData = localStorage.getItem(AUTH_STORAGE_KEY);
+          if (!authData) return null;
+          
+          const session = JSON.parse(authData);
+          
+          // 檢查會話是否過期
+          if (Date.now() > session.expiresAt) {
+            clearAuthSession();
+            return null;
+          }
+          
+          return session;
+        } catch (error) {
+          console.error('載入會話失敗:', error);
+          clearAuthSession();
+          return null;
+        }
+      }
+      
+      function clearAuthSession() {
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+        localStorage.removeItem(USER_STORAGE_KEY);
+        currentUser = null;
+        console.log('會話已清除');
+      }
+      
+      function isSessionValid() {
+        const session = loadAuthSession();
+        return session && Date.now() < session.expiresAt;
+      }
+      
+      function refreshSession() {
+        const session = loadAuthSession();
+        if (session) {
+          session.timestamp = Date.now();
+          session.expiresAt = Date.now() + SESSION_TIMEOUT;
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+        }
+      }
+      
       // 模擬登錄API（稍後替換）
       async function simulateLogin(username, password) {
         return new Promise((resolve, reject) => {
           setTimeout(() => {
             // 模擬API響應 - 演示用戶：demo/demo123
             if (username === 'demo' && password === 'demo123') {
-              resolve({ success: true, user: { username, email: 'demo@example.com' } });
+              const user = { 
+                id: 1,
+                username, 
+                email: 'demo@example.com',
+                name: 'Demo User',
+                avatar: null,
+                role: 'user'
+              };
+              resolve({ 
+                success: true, 
+                user: user,
+                token: 'demo_token_' + Date.now()
+              });
             } else if (username === 'admin' && password === 'admin123') {
-              resolve({ success: true, user: { username, email: 'admin@example.com' } });
+              const user = { 
+                id: 2,
+                username, 
+                email: 'admin@example.com',
+                name: 'Admin User',
+                avatar: null,
+                role: 'admin'
+              };
+              resolve({ 
+                success: true, 
+                user: user,
+                token: 'admin_token_' + Date.now()
+              });
             } else {
               reject(new Error('用戶名或密碼錯誤'));
             }
@@ -1347,21 +1475,189 @@
             } else if (email === 'existing@example.com') {
               reject(new Error('郵件地址已被註冊'));
             } else {
-              resolve({ success: true, user: { username, email } });
+              const user = {
+                id: Date.now(), // 簡單的ID生成
+                username,
+                email,
+                name: username,
+                avatar: null,
+                role: 'user',
+                createdAt: new Date().toISOString()
+              };
+              resolve({ 
+                success: true, 
+                user: user,
+                token: 'new_user_token_' + Date.now()
+              });
             }
           }, 1500);
         });
       }
+      
+      // 用戶信息管理
+      function updateUserProfile(updates) {
+        if (currentUser) {
+          currentUser = { ...currentUser, ...updates };
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser));
+          
+          // 更新會話中的用戶信息
+          const session = loadAuthSession();
+          if (session) {
+            session.user = currentUser;
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+          }
+        }
+      }
+      
+      function getUserDisplayName() {
+        if (!currentUser) return '訪客';
+        return currentUser.name || currentUser.username || currentUser.email;
+      }
+      
+      // 書籤管理
+      function loadUserBookmarks() {
+        if (!currentUser) return [];
+        
+        try {
+          const bookmarksData = localStorage.getItem(BOOKMARKS_STORAGE_KEY + '_' + currentUser.id);
+          return bookmarksData ? JSON.parse(bookmarksData) : [];
+        } catch (error) {
+          console.error('載入書籤失敗:', error);
+          return [];
+        }
+      }
+      
+      function saveUserBookmarks(bookmarkList) {
+        if (!currentUser) return;
+        
+        try {
+          localStorage.setItem(BOOKMARKS_STORAGE_KEY + '_' + currentUser.id, JSON.stringify(bookmarkList));
+          bookmarks = bookmarkList;
+        } catch (error) {
+          console.error('保存書籤失敗:', error);
+        }
+      }
+      
+      function toggleBookmark(itemId) {
+        if (!currentUser) {
+          showAuthError('請先登錄以使用書籤功能');
+          return false;
+        }
+        
+        const bookmarkIndex = bookmarks.findIndex(b => b.id === itemId);
+        
+        if (bookmarkIndex > -1) {
+          // 移除書籤
+          bookmarks.splice(bookmarkIndex, 1);
+        } else {
+          // 添加書籤
+          const item = allItems.find(i => i.id === itemId);
+          if (item) {
+            bookmarks.push({
+              id: itemId,
+              title: item.name,
+              addedAt: new Date().toISOString()
+            });
+          }
+        }
+        
+        saveUserBookmarks(bookmarks);
+        updateBookmarkUI();
+        return true;
+      }
 
+      // UI更新函數
+      function updateUserUI() {
+        const authBtn = document.getElementById('auth-btn');
+        
+        if (currentUser) {
+          authBtn.textContent = `${getUserDisplayName()} ▼`;
+          authBtn.style.maxWidth = '150px';
+          authBtn.style.overflow = 'hidden';
+          authBtn.style.textOverflow = 'ellipsis';
+          
+          // 顯示用戶相關功能
+          updateBookmarkUI();
+        } else {
+          authBtn.textContent = '登入';
+          authBtn.style.maxWidth = 'none';
+          authBtn.style.overflow = 'visible';
+          authBtn.style.textOverflow = 'unset';
+        }
+      }
+      
+      function updateBookmarkUI() {
+        // 更新所有書籤按鈕狀態
+        const bookmarkBtns = document.querySelectorAll('[data-bookmark-id]');
+        bookmarkBtns.forEach(btn => {
+          const itemId = parseInt(btn.getAttribute('data-bookmark-id'));
+          const isBookmarked = bookmarks.some(b => b.id === itemId);
+          
+          if (isBookmarked) {
+            btn.setAttribute('fill', '');
+            btn.setAttribute('color', 'warning');
+            btn.innerHTML = '<ion-icon name="bookmark"></ion-icon>';
+          } else {
+            btn.setAttribute('fill', 'outline');
+            btn.setAttribute('color', 'medium');
+            btn.innerHTML = '<ion-icon name="bookmark-outline"></ion-icon>';
+          }
+        });
+      }
+      
+      function showSuccessMessage(message) {
+        // 創建成功提示
+        const toast = document.createElement('ion-toast');
+        toast.message = message;
+        toast.duration = 3000;
+        toast.color = 'success';
+        toast.position = 'top';
+        
+        document.body.appendChild(toast);
+        toast.present();
+        
+        // 自動移除元素
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 3500);
+      }
+      
       function confirmLogout() {
-        currentUser = null;
-        document.getElementById('auth-btn').textContent = '登入';
+        // 清除會話
+        clearAuthSession();
+        
+        // 清空書籤
+        bookmarks = [];
+        
+        // 更新UI
+        updateUserUI();
         closeLogoutModal();
+        
+        // 顯示登出消息
+        showSuccessMessage('已成功登出');
       }
       
       // 初始化應用
       document.addEventListener('DOMContentLoaded', function() {
         console.log('DOM 已加載，開始初始化...');
+        
+        // 檢查並載入現有會話
+        const existingSession = loadAuthSession();
+        if (existingSession && isSessionValid()) {
+          currentUser = existingSession.user;
+          bookmarks = loadUserBookmarks();
+          updateUserUI();
+          console.log('已載入現有會話:', currentUser);
+        }
+        
+        // 設置會話自動刷新（每5分鐘）
+        setInterval(() => {
+          if (currentUser && isSessionValid()) {
+            refreshSession();
+          }
+        }, 5 * 60 * 1000);
         
         // 設置事件監聽器
         document.getElementById('search-bar').addEventListener('ionInput', filterItems);
