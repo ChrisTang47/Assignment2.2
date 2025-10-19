@@ -677,8 +677,10 @@
             if (data.items && Array.isArray(data.items)) {
               const totalItems = data.pagination?.total || data.items.length;
               const currentTotal = (page - 1) * limit + data.items.length;
-              // 修正: 確保正確檢測是否還有更多數據
-              const hasMoreItems = data.items.length === limit; // 如果返回的項目數等於請求的限制，通常表示還有更多數據
+              // 修正: 更智能的檢測是否還有更多數據
+              const hasMoreItems = data.pagination ? 
+                (data.pagination.total > currentTotal) : 
+                (data.items.length === limit); // 如果返回的項目數等於請求的限制，通常表示還有更多數據
               
               console.log('分頁信息:', {
                 page,
@@ -686,7 +688,8 @@
                 itemsInResponse: data.items.length,
                 totalItems,
                 currentTotal,
-                hasMoreItems
+                hasMoreItems,
+                paginationData: data.pagination
               });
               
               return {
@@ -775,23 +778,36 @@
       }
       
       function handleInfiniteScroll() {
+        // 調試信息
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        
+        console.log('滾動檢測:', {
+          scrollTop,
+          windowHeight, 
+          documentHeight,
+          isLoadingMore,
+          hasMoreData,
+          isInfiniteScrollEnabled,
+          showBookmarkedOnly: currentSearchParams.showBookmarkedOnly
+        });
+        
         // 如果正在加載或沒有更多數據，則不執行
         if (isLoadingMore || !hasMoreData || !isInfiniteScrollEnabled) {
+          console.log('無限滾動被阻止:', { isLoadingMore, hasMoreData, isInfiniteScrollEnabled });
           return;
         }
         
         // 如果啟用了收藏過濾，則不執行無限滾動
         if (currentSearchParams.showBookmarkedOnly) {
+          console.log('收藏過濾模式，跳過無限滾動');
           return;
         }
         
-        // 檢查是否接近頁面底部（距離底部200px時觸發）
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-        
-        if (scrollTop + windowHeight >= documentHeight - 200) {
-          console.log('觸發無限滾動載入');
+        // 檢查是否接近頁面底部（距離底部200px時觸發，或者如果頁面太短則立即觸發）
+        if (scrollTop + windowHeight >= documentHeight - 200 || documentHeight <= windowHeight + 50) {
+          console.log('✅ 觸發無限滾動載入');
           loadMoreDataInfinite();
         }
       }
@@ -834,6 +850,13 @@
           
           // 更新分頁信息
           updatePaginationInfo();
+          
+          // 如果還有更多數據，再次檢查是否需要繼續載入
+          if (hasMoreData) {
+            setTimeout(() => {
+              checkAndTriggerInfiniteScroll();
+            }, 300);
+          }
           
         } catch (error) {
           console.error('❌ 無限滾動載入失敗:', error);
@@ -1070,6 +1093,11 @@
             applyBookmarkFilter();
           }
           
+          // 檢查是否需要立即載入更多數據（如果頁面太短無法滾動）
+          setTimeout(() => {
+            checkAndTriggerInfiniteScroll();
+          }, 500);
+          
         } catch (error) {
           console.error('❌ 載入數據失敗:', error);
           showError(`載入失敗: ${error.message}`);
@@ -1171,6 +1199,26 @@
         } finally {
           loadMoreBtn.disabled = false;
           loadMoreBtn.innerHTML = '載入更多';
+        }
+      }
+      
+      // 檢查並觸發無限滾動（用於頁面內容太少的情況）
+      function checkAndTriggerInfiniteScroll() {
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        
+        console.log('檢查是否需要自動載入更多:', {
+          windowHeight,
+          documentHeight,
+          hasMoreData,
+          isInfiniteScrollEnabled,
+          ratio: documentHeight / windowHeight
+        });
+        
+        // 如果頁面內容太少（小於視窗高度的1.2倍），且還有更多數據，則自動載入
+        if (documentHeight < windowHeight * 1.2 && hasMoreData && isInfiniteScrollEnabled && !isLoadingMore) {
+          console.log('🔄 頁面內容太少，自動觸發載入更多數據');
+          loadMoreDataInfinite();
         }
       }
       
