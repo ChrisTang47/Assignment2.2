@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>瑜伽動作應用 - Assignment 2.2</title>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css"
+    />
+    
+    <style>
+      /* 與原版相同的樣式 */
+      .item-image {
+        width: 100%;
+        max-width: 300px;
+        height: auto;
+        border-radius: 8px;
+        margin-bottom: 10px;
+      }
+      
+      .video-thumbnail {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+      }
+      
+      .video-thumbnail:hover {
+        transform: scale(1.02);
+      }
+      
+      .poses-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 16px;
+      }
+      
+      .pose-card {
+        flex: 1 1 300px;
+        min-width: 280px;
+      }
+      
+      .filter-container {
+        padding: 16px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+      }
+      
+      .filter-row {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      
+      .filter-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      
+      .filter-item label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+      }
+      
+      @media (max-width: 768px) {
+        .filter-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        
+        .filter-item {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <ion-app>
+      <!-- Header -->
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>瑜伽動作應用</ion-title>
+          <ion-buttons slot="end">
+            <ion-button id="auth-btn">登入</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <!-- Content -->
+      <ion-content>
+        <!-- 搜索和篩選區域 -->
+        <div class="filter-container">
+          <div class="filter-row">
+            <div class="filter-item" style="flex: 2;">
+              <label>搜索瑜伽動作</label>
+              <ion-searchbar id="search-bar" placeholder="搜索動作名稱、描述或好處..."></ion-searchbar>
+            </div>
+            
+            <div class="filter-item">
+              <label>分類篩選</label>
+              <ion-select id="category-select" placeholder="所有分類">
+                <ion-select-option value="">所有分類</ion-select-option>
+                <ion-select-option value="站姿式">站姿式</ion-select-option>
+                <ion-select-option value="坐姿式">坐姿式</ion-select-option>
+                <ion-select-option value="平衡式">平衡式</ion-select-option>
+                <ion-select-option value="後彎式">後彎式</ion-select-option>
+                <ion-select-option value="前彎式">前彎式</ion-select-option>
+                <ion-select-option value="扭轉式">扭轉式</ion-select-option>
+                <ion-select-option value="倒立式">倒立式</ion-select-option>
+                <ion-select-option value="休息式">休息式</ion-select-option>
+                <ion-select-option value="開髖式">開髖式</ion-select-option>
+              </ion-select>
+            </div>
+            
+            <div class="filter-item">
+              <label>每頁顯示</label>
+              <ion-select id="limit-select" value="10">
+                <ion-select-option value="5">5 項</ion-select-option>
+                <ion-select-option value="10">10 項</ion-select-option>
+                <ion-select-option value="20">20 項</ion-select-option>
+                <ion-select-option value="50">50 項</ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 載入狀態 -->
+        <div id="loading-container" style="text-align: center; padding: 40px;">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p id="loading-message">載入瑜伽動作中...</p>
+        </div>
+        
+        <!-- 錯誤狀態 -->
+        <div id="error-container" style="display: none; text-align: center; padding: 40px;">
+          <p id="error-message">載入失敗</p>
+          <ion-button id="retry-btn" onclick="loadData()">重試</ion-button>
+        </div>
+        
+        <!-- 數據顯示區域 -->
+        <div id="poses-list" style="display: none;">
+          <!-- 瑜伽動作卡片將在這裡顯示 -->
+        </div>
+        
+        <!-- 分頁信息和載入更多 -->
+        <div id="pagination-container" style="display: none; text-align: center; padding: 20px;">
+          <p id="pagination-info">顯示第 1-10 項，共 50 項</p>
+          <ion-button id="load-more-btn" fill="outline" onclick="loadMoreData()">載入更多</ion-button>
+          <div id="load-more-error" style="display: none; color: red; margin-top: 10px;">載入失敗，請重試</div>
+          <div id="no-more-data" style="display: none; color: #666; margin-top: 10px;">沒有更多數據了</div>
+        </div>
+      </ion-content>
+
+      <!-- 登入/註冊模態框 -->
+      <ion-modal id="auth-modal">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title id="auth-title">登入</ion-title>
+            <ion-buttons slot="end">
+              <ion-button onclick="closeAuthModal()">
+                <ion-icon name="close"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        
+        <ion-content>
+          <ion-list>
+            <ion-item>
+              <ion-label position="stacked">電子郵件</ion-label>
+              <ion-input id="email-input" type="email" placeholder="輸入您的電子郵件"></ion-input>
+            </ion-item>
+            
+            <ion-item>
+              <ion-label position="stacked">密碼</ion-label>
+              <ion-input id="password-input" type="password" placeholder="輸入您的密碼"></ion-input>
+            </ion-item>
+            
+            <ion-item id="confirm-password-item" style="display: none;">
+              <ion-label position="stacked">確認密碼</ion-label>
+              <ion-input id="confirm-password-input" type="password" placeholder="再次輸入密碼"></ion-input>
+            </ion-item>
+          </ion-list>
+          
+          <div style="padding: 20px;">
+            <ion-button expand="block" id="auth-submit-btn" onclick="handleAuth()">登入</ion-button>
+            <ion-button expand="block" fill="clear" id="auth-toggle-btn" onclick="toggleAuthMode()">
+              還沒有帳號？註冊
+            </ion-button>
+          </div>
+        </ion-content>
+      </ion-modal>
+
+      <!-- 登出確認模態框 -->
+      <ion-modal id="logout-confirm-modal">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>確認登出</ion-title>
+          </ion-toolbar>
+        </ion-header>
+        
+        <ion-content>
+          <div style="padding: 20px; text-align: center;">
+            <p>您確定要登出嗎？</p>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+              <ion-button fill="outline" onclick="closeLogoutModal()">取消</ion-button>
+              <ion-button onclick="confirmLogout()">確認登出</ion-button>
+            </div>
+          </div>
+        </ion-content>
+      </ion-modal>
+    </ion-app>
+
+    <script>
+      // 全局變量
+      let allItems = [];
+      let filteredItems = [];
+      let currentUser = null;
+      let currentPage = 1;
+      let itemsPerPage = 10;
+      let isLoginMode = true;
+      let bookmarks = [];
+      let hasMoreData = true;
+      
+      // API 函數 - 帶重試機制
+      async function fetchFromAPIWithRetry(page = 1, limit = 10) {
+        const maxRetries = 15;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            const url = `https://dae-mobile-assignment.hkit.cc/api/yoga-poses/?page=${page}&limit=${limit}`;
+            console.log(`API 嘗試 ${attempt}/${maxRetries}:`, url);
+            
+            // 更新載入消息
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+              loadingMessage.textContent = `載入瑜伽動作中... (嘗試 ${attempt}/${maxRetries})`;
+            }
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+              throw new Error(`HTTP 錯誤: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('API 響應:', data);
+            
+            // 檢查是否是測試錯誤
+            if (data.error) {
+              console.log('收到測試錯誤，重試中...', data.error);
+              if (attempt < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                continue;
+              } else {
+                throw new Error(`API 測試錯誤: ${data.error}`);
+              }
+            }
+            
+            // 成功獲取數據
+            if (data.items && Array.isArray(data.items)) {
+              return {
+                items: data.items,
+                total: data.pagination?.total || data.items.length,
+                hasMore: data.pagination ? (page * limit < data.pagination.total) : false
+              };
+            } else {
+              throw new Error('無效的數據格式');
+            }
+            
+          } catch (error) {
+            console.log(`嘗試 ${attempt} 失敗:`, error.message);
+            
+            if (attempt < maxRetries) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            } else {
+              throw error;
+            }
+          }
+        }
+      }
+      
+      // 顯示數據
+      function displayItems(items) {
+        console.log('顯示項目:', items.length);
+        const list = document.getElementById('poses-list');
+        const loading = document.getElementById('loading-container');
+        const pagination = document.getElementById('pagination-container');
+        
+        if (!list) {
+          console.error('找不到 poses-list 元素');
+          return;
+        }
+        
+        // 如果是第一頁，清空列表
+        if (currentPage === 1) {
+          list.innerHTML = '<div class="poses-grid"></div>';
+        }
+        
+        const grid = list.querySelector('.poses-grid');
+        
+        items.forEach(item => {
+          const card = document.createElement('ion-card');
+          card.className = 'pose-card';
+          
+          card.innerHTML = `
+            <ion-card-header>
+              <ion-card-title>${item.title || item.sanskrit_name || '無標題'}</ion-card-title>
+              <ion-card-subtitle>
+                ${item.category || '未分類'} • ${item.difficulty || '未設定'} • ${item.duration_minutes ? item.duration_minutes + ' 分鐘' : '未設定時長'}
+              </ion-card-subtitle>
+            </ion-card-header>
+            
+            <ion-card-content>
+              ${item.image_url ? `
+                <img class="item-image" src="${item.image_url}" alt="${item.title || item.sanskrit_name}" loading="lazy">
+              ` : ''}
+              
+              <p><strong>梵文名:</strong> ${item.sanskrit_name || '無'}</p>
+              <p><strong>教練:</strong> ${item.instructor || '未設定'}</p>
+              <p><strong>說明:</strong> ${item.description || '無說明'}</p>
+              
+              ${item.benefits && Array.isArray(item.benefits) ? `
+                <p><strong>好處:</strong></p>
+                <ul>
+                  ${item.benefits.map(benefit => `<li>${benefit}</li>`).join('')}
+                </ul>
+              ` : ''}
+              
+              ${item.video_url ? `
+                <div style="margin-top: 10px;">
+                  <ion-button href="${item.video_url}" target="_blank" fill="outline" size="small">
+                    <ion-icon name="play-circle-outline" slot="start"></ion-icon>
+                    觀看視頻
+                  </ion-button>
+                </div>
+              ` : ''}
+              
+              <div style="margin-top: 10px;">
+                <ion-button fill="clear" size="small" onclick="toggleBookmark(${item.id})">
+                  <ion-icon name="${bookmarks.includes(item.id) ? 'bookmark' : 'bookmark-outline'}" slot="start"></ion-icon>
+                  ${bookmarks.includes(item.id) ? '已收藏' : '收藏'}
+                </ion-button>
+              </div>
+            </ion-card-content>
+          `;
+          
+          grid.appendChild(card);
+        });
+        
+        // 更新顯示狀態
+        loading.style.display = 'none';
+        list.style.display = 'block';
+        
+        // 更新分頁信息
+        updatePaginationInfo();
+        pagination.style.display = 'block';
+        
+        console.log('數據顯示完成');
+      }
+      
+      // 更新分頁信息
+      function updatePaginationInfo() {
+        const info = document.getElementById('pagination-info');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const noMoreData = document.getElementById('no-more-data');
+        
+        const totalDisplayed = allItems.length;
+        info.textContent = `已顯示 ${totalDisplayed} 項瑜伽動作`;
+        
+        if (hasMoreData) {
+          loadMoreBtn.style.display = 'block';
+          noMoreData.style.display = 'none';
+        } else {
+          loadMoreBtn.style.display = 'none';
+          noMoreData.style.display = 'block';
+        }
+      }
+      
+      // 顯示錯誤
+      function showError(message) {
+        console.error('顯示錯誤:', message);
+        const loading = document.getElementById('loading-container');
+        const error = document.getElementById('error-container');
+        const errorMsg = document.getElementById('error-message');
+        
+        loading.style.display = 'none';
+        errorMsg.textContent = message;
+        error.style.display = 'block';
+      }
+      
+      // 載入數據
+      async function loadData() {
+        console.log('loadData 函數被調用');
+        const loading = document.getElementById('loading-container');
+        const error = document.getElementById('error-container');
+        const list = document.getElementById('poses-list');
+        const pagination = document.getElementById('pagination-container');
+        
+        // 重置狀態
+        currentPage = 1;
+        allItems = [];
+        loading.style.display = 'block';
+        error.style.display = 'none';
+        list.style.display = 'none';
+        pagination.style.display = 'none';
+        
+        try {
+          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage);
+          
+          if (result.items.length === 0) {
+            showError('沒有找到瑜伽動作數據');
+            return;
+          }
+          
+          allItems = result.items;
+          hasMoreData = result.hasMore;
+          filteredItems = [...allItems];
+          
+          displayItems(allItems);
+          
+        } catch (error) {
+          console.error('載入數據失敗:', error);
+          showError(`載入失敗: ${error.message}`);
+        }
+      }
+      
+      // 載入更多數據
+      async function loadMoreData() {
+        if (!hasMoreData) return;
+        
+        try {
+          currentPage++;
+          const result = await fetchFromAPIWithRetry(currentPage, itemsPerPage);
+          
+          allItems = [...allItems, ...result.items];
+          hasMoreData = result.hasMore;
+          filteredItems = [...allItems];
+          
+          displayItems(result.items);
+          
+        } catch (error) {
+          console.error('載入更多失敗:', error);
+          const loadMoreError = document.getElementById('load-more-error');
+          loadMoreError.style.display = 'block';
+          setTimeout(() => {
+            loadMoreError.style.display = 'none';
+          }, 3000);
+        }
+      }
+      
+      // 收藏功能
+      function toggleBookmark(itemId) {
+        const index = bookmarks.indexOf(itemId);
+        if (index > -1) {
+          bookmarks.splice(index, 1);
+        } else {
+          bookmarks.push(itemId);
+        }
+        
+        // 重新渲染以更新收藏狀態
+        const list = document.getElementById('poses-list');
+        list.innerHTML = '<div class="poses-grid"></div>';
+        displayItems(allItems);
+      }
+      
+      // 搜索功能
+      function filterItems() {
+        const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+        const selectedCategory = document.getElementById('category-select').value;
+        
+        filteredItems = allItems.filter(item => {
+          const matchesSearch = !searchTerm || 
+            (item.title && item.title.toLowerCase().includes(searchTerm)) ||
+            (item.sanskrit_name && item.sanskrit_name.toLowerCase().includes(searchTerm)) ||
+            (item.description && item.description.toLowerCase().includes(searchTerm)) ||
+            (item.benefits && Array.isArray(item.benefits) && item.benefits.some(b => b.toLowerCase().includes(searchTerm)));
+          
+          const matchesCategory = !selectedCategory || item.category === selectedCategory;
+          
+          return matchesSearch && matchesCategory;
+        });
+        
+        // 重新顯示篩選後的數據
+        const list = document.getElementById('poses-list');
+        list.innerHTML = '<div class="poses-grid"></div>';
+        displayItems(filteredItems);
+      }
+      
+      // 認證相關功能（簡化版）
+      function openAuthModal() {
+        document.getElementById('auth-modal').present();
+      }
+      
+      function closeAuthModal() {
+        document.getElementById('auth-modal').dismiss();
+      }
+      
+      function closeLogoutModal() {
+        document.getElementById('logout-confirm-modal').dismiss();
+      }
+      
+      function toggleAuthMode() {
+        isLoginMode = !isLoginMode;
+        const title = document.getElementById('auth-title');
+        const submitBtn = document.getElementById('auth-submit-btn');
+        const toggleBtn = document.getElementById('auth-toggle-btn');
+        const confirmPasswordItem = document.getElementById('confirm-password-item');
+        
+        if (isLoginMode) {
+          title.textContent = '登入';
+          submitBtn.textContent = '登入';
+          toggleBtn.textContent = '還沒有帳號？註冊';
+          confirmPasswordItem.style.display = 'none';
+        } else {
+          title.textContent = '註冊';
+          submitBtn.textContent = '註冊';
+          toggleBtn.textContent = '已有帳號？登入';
+          confirmPasswordItem.style.display = 'block';
+        }
+      }
+      
+      function handleAuth() {
+        // 簡化的認證處理
+        const email = document.getElementById('email-input').value;
+        if (email) {
+          currentUser = { email };
+          document.getElementById('auth-btn').textContent = '登出';
+          closeAuthModal();
+        }
+      }
+      
+      function confirmLogout() {
+        currentUser = null;
+        document.getElementById('auth-btn').textContent = '登入';
+        closeLogoutModal();
+      }
+      
+      // 初始化應用
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM 已加載，開始初始化...');
+        
+        // 設置事件監聽器
+        document.getElementById('search-bar').addEventListener('ionInput', filterItems);
+        document.getElementById('category-select').addEventListener('ionChange', filterItems);
+        document.getElementById('limit-select').addEventListener('ionChange', (e) => {
+          itemsPerPage = parseInt(e.detail.value);
+          loadData(); // 重新載入數據
+        });
+        
+        document.getElementById('auth-btn').addEventListener('click', () => {
+          if (currentUser) {
+            document.getElementById('logout-confirm-modal').present();
+          } else {
+            openAuthModal();
+          }
+        });
+        
+        // 開始載入數據
+        loadData();
+      });
+    </script>
+  </body>
+</html>
