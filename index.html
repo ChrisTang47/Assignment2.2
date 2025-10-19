@@ -646,6 +646,8 @@
             
             const url = `${CONFIG.API_BASE_URL}/yoga-poses/?${urlParams.toString()}`;
             console.log(`API 嘗試 ${attempt}/${maxRetries}:`, url);
+            console.log(`🔍 URL參數檢查 - page: ${page}, limit: ${limit}`);
+            console.log(`🔍 完整URL參數:`, urlParams.toString());
             
             // 更新載入消息
             const loadingMessage = document.getElementById('loading-message');
@@ -682,9 +684,9 @@
                 (data.pagination.total > currentTotal) : 
                 (data.items.length === limit); // 如果返回的項目數等於請求的限制，通常表示還有更多數據
               
-              console.log('分頁信息:', {
+              console.log('🔍 API響應分析:', {
                 page,
-                limit,
+                requestedLimit: limit,
                 itemsInResponse: data.items.length,
                 totalItems,
                 currentTotal,
@@ -692,8 +694,15 @@
                 paginationData: data.pagination
               });
               
+              // 🚨 強制檢查：如果API返回超過限制的項目，則截取
+              let actualItems = data.items;
+              if (data.items.length > limit) {
+                console.warn(`⚠️ API返回了${data.items.length}個項目，但請求限制是${limit}，強制截取前${limit}個`);
+                actualItems = data.items.slice(0, limit);
+              }
+              
               return {
-                items: data.items,
+                items: actualItems,
                 total: totalItems,
                 hasMore: hasMoreItems
               };
