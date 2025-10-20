@@ -266,15 +266,15 @@
               <label>分類篩選</label>
               <ion-select id="category-select" placeholder="所有分類">
                 <ion-select-option value="">所有分類</ion-select-option>
-                <ion-select-option value="站姿式">站姿式</ion-select-option>
+                <ion-select-option value="站立式">站立式</ion-select-option>
                 <ion-select-option value="坐姿式">坐姿式</ion-select-option>
                 <ion-select-option value="平衡式">平衡式</ion-select-option>
                 <ion-select-option value="後彎式">後彎式</ion-select-option>
                 <ion-select-option value="前彎式">前彎式</ion-select-option>
-                <ion-select-option value="扭轉式">扭轉式</ion-select-option>
                 <ion-select-option value="倒立式">倒立式</ion-select-option>
                 <ion-select-option value="休息式">休息式</ion-select-option>
                 <ion-select-option value="開髖式">開髖式</ion-select-option>
+                <ion-select-option value="手臂平衡式">手臂平衡式</ion-select-option>
               </ion-select>
             </div>
             
@@ -301,7 +301,7 @@
             <!-- Step 23: 只顯示已收藏項目過濾 -->
             <div class="filter-item">
               <label>收藏過濾</label>
-              <ion-button id="bookmark-filter-btn" fill="outline" color="primary" onclick="toggleBookmarkFilter()">
+              <ion-button id="bookmark-filter-btn" fill="outline" color="primary">
                 <ion-icon name="heart-outline"></ion-icon>
                 顯示全部
               </ion-button>
@@ -761,11 +761,16 @@
       
       // Step 23: 收藏過濾功能
       async function toggleBookmarkFilter() {
+        console.log('🔘 收藏過濾按鈕被點擊！');
+        
         // 檢查用戶是否已登入
         if (!currentUser || !currentUser.id) {
+          console.log('⚠️ 用戶未登入，顯示警告');
           showAlert('請先登入會員才能使用收藏過濾功能！', 'warning');
           return;
         }
+        
+        console.log('✅ 用戶已登入:', currentUser);
         
         // 確保用戶數據已載入
         if (!bookmarks) {
@@ -773,8 +778,11 @@
           await initializeUserData();
         }
         
+        console.log('📚 收藏數據:', bookmarks);
+        
         // 檢查是否有收藏數據
         if (!bookmarks || bookmarks.length === 0) {
+          console.log('⚠️ 沒有收藏數據，顯示提示');
           showAlert('您還沒有任何收藏的瑜伽體式！', 'info');
           return;
         }
@@ -802,6 +810,7 @@
         }
         
         // 重新顯示當前項目，應用收藏過濾
+        console.log('🔄 開始應用收藏過濾...');
         applyBookmarkFilter();
       }
       
@@ -853,10 +862,41 @@
         // 更新全局變量 filteredItems 以確保後續操作正確
         filteredItems = [...itemsToDisplay];
         
-        // 重新顯示項目
-        const list = document.getElementById('poses-list');
-        list.innerHTML = '<div class="poses-grid"></div>';
-        displayItems(itemsToDisplay);
+        // 🔥 修復：收藏過濾時重置分頁狀態
+        currentPage = 1;
+        
+        // 重新顯示項目 - 清理所有頁面區域
+        const page1Grid = document.getElementById('page-1-grid');
+        const page2Grid = document.getElementById('page-2-grid');
+        const page2Section = document.getElementById('page-2-section');
+        
+        if (page1Grid) page1Grid.innerHTML = '';
+        if (page2Grid) page2Grid.innerHTML = '';
+        if (page2Section) page2Section.style.display = 'none';
+        
+        // 將收藏過濾的結果顯示在第一頁
+        if (itemsToDisplay.length > 0) {
+          displayItems(itemsToDisplay, false, false); // 不更新書籤UI，避免遞迴
+        }
+        
+        // 🔥 手動更新書籤UI，但不觸發遞迴
+        if (currentUser && bookmarks) {
+          const bookmarkBtns = document.querySelectorAll('.bookmark-btn');
+          bookmarkBtns.forEach(btn => {
+            const itemId = parseInt(btn.getAttribute('data-item-id'));
+            const isBookmarked = bookmarks.some(b => parseInt(b.id) === itemId);
+            
+            if (isBookmarked) {
+              btn.setAttribute('fill', 'solid');
+              btn.setAttribute('color', 'danger');
+              btn.innerHTML = '<ion-icon name="heart" slot="start"></ion-icon>已收藏';
+            } else {
+              btn.setAttribute('fill', 'clear');
+              btn.setAttribute('color', 'medium');
+              btn.innerHTML = '<ion-icon name="heart-outline" slot="start"></ion-icon>收藏';
+            }
+          });
+        }
         
         // 更新分頁信息
         if (currentSearchParams.showBookmarkedOnly) {
@@ -871,6 +911,18 @@
             <small style="color: #666;">關閉收藏過濾可瀏覽更多項目</small>
           `;
         } else {
+          // 🔥 修復：取消收藏過濾時恢復分頁狀態
+          console.log('🔄 取消收藏過濾，恢復原有分頁顯示');
+          
+          // 恢復分頁狀態：如果有10項則設為第2頁，否則第1頁
+          if (allItems.length >= 10) {
+            currentPage = 2;
+          } else {
+            currentPage = 1;
+          }
+          
+          // 重新顯示所有數據
+          redisplayAllItems();
           updatePaginationInfo();
         }
       }
@@ -919,7 +971,7 @@
           
           // 檢查重複項目並過濾
           const existingIds = new Set(allItems.map(item => parseInt(item.id)));
-          const newItems = result.items.filter(item => {
+          let newItems = result.items.filter(item => {
             const itemId = parseInt(item.id);
             if (existingIds.has(itemId)) {
               console.warn(`⚠️ 跳過重複項目: ID ${itemId} - ${item.title || item.sanskrit_name}`);
@@ -945,14 +997,25 @@
           const oldLength = allItems.length;
           allItems = [...allItems, ...newItems];
           hasMoreData = result.hasMore && newItems.length > 0;
-          filteredItems = [...allItems];
           showingAllData = !hasMoreData;
           
           console.log(`✅ Load More 成功: 第${currentPage}頁 | 新增 ${newItems.length} 項 | 總計 ${allItems.length} 項`);
-          console.log('📊 最終狀態 - 所有項目IDs:', allItems.map(item => item.id));
+          console.log('📊 載入完成前 - 所有項目IDs:', allItems.map(item => item.id));
           
-          // 追加顯示新項目（保持現有項目）
-          displayItems(newItems, true);
+          // 🔥 重要：對所有數據進行整體排序（如果有選擇排序方式）
+          if (currentSearchParams.sort) {
+            allItems = applySorting(allItems, currentSearchParams.sort, currentSearchParams.order);
+            console.log('📊 已對所有 10 項數據應用整體排序:', currentSearchParams.sort, currentSearchParams.order);
+            console.log('📊 排序後的完整列表:', allItems.map(item => ({
+              title: item.title || item.sanskrit_name,
+              difficulty: item.difficulty
+            })));
+          }
+          
+          filteredItems = [...allItems];
+          
+          // 重新顯示所有排序後的數據
+          redisplayAllItems();
           
           // 更新分頁信息
           updatePaginationInfo();
@@ -975,7 +1038,7 @@
       }
       
       // 顯示數據 - Step 7: 分頁顯示模式
-      function displayItems(items, appendMode = false) {
+      function displayItems(items, appendMode = false, shouldUpdateBookmarkUI = true) {
         console.log(`🖼️ DISPLAY ITEMS DEBUG: 要顯示 ${items.length} 個項目, 模式: ${appendMode ? '追加' : '替換'}`);
         console.log(`🖼️ DISPLAY 當前頁: ${currentPage}, items參數:`, items.map(item => ({id: item.id, title: item.title})));
         
@@ -1007,11 +1070,15 @@
           targetSection = document.getElementById('page-2-section');
           console.log('🖼️ 顯示第2頁數據到 page-2-grid');
           
-          // 顯示第二頁區域
-          targetSection.style.display = 'block';
+          // 顯示第二頁區域（確保元素存在）
+          if (targetSection) {
+            targetSection.style.display = 'block';
+          }
           
           // 清空第二頁的網格
-          targetGrid.innerHTML = '';
+          if (targetGrid) {
+            targetGrid.innerHTML = '';
+          }
         }
         
         if (!targetGrid) {
@@ -1102,8 +1169,8 @@
         console.log(`🖼️ FINAL RENDER CHECK: 第1頁 ${page1Cards} 張卡片, 第2頁 ${page2Cards} 張卡片, 總計 ${totalCards} 張`);
         console.log(`🖼️ 預期顯示數量: ${allItems.length}, 實際顯示數量: ${totalCards}`);
         
-        // 更新書籤UI狀態
-        if (currentUser) {
+        // 更新書籤UI狀態 - 根據參數決定是否更新
+        if (currentUser && shouldUpdateBookmarkUI) {
           updateBookmarkUI();
         }
         
@@ -1112,6 +1179,216 @@
         pagination.style.display = 'block';
         
         console.log('數據顯示完成');
+      }
+
+      // 重新顯示所有排序後的數據
+      function redisplayAllItems() {
+        console.log('🔄 重新顯示所有排序後的數據');
+        
+        // 分配數據：前5項到第1頁，後5項到第2頁
+        const page1Items = allItems.slice(0, 5);
+        const page2Items = allItems.slice(5, 10);
+        
+        console.log('📄 第1頁項目:', page1Items.map(item => ({ 
+          title: item.title || item.sanskrit_name, 
+          difficulty: item.difficulty 
+        })));
+        console.log('📄 第2頁項目:', page2Items.map(item => ({ 
+          title: item.title || item.sanskrit_name, 
+          difficulty: item.difficulty 
+        })));
+        
+        // 清空並重新顯示第1頁
+        const page1Grid = document.getElementById('page-1-grid');
+        if (page1Grid && page1Items.length > 0) {
+          page1Grid.innerHTML = '';
+          page1Items.forEach(item => {
+            const card = document.createElement('ion-card');
+            card.className = 'pose-card';
+            
+            card.innerHTML = `
+              <ion-card-header>
+                <ion-card-title>${item.title || item.sanskrit_name || '無標題'}</ion-card-title>
+                <ion-card-subtitle>
+                  ${item.category || '未分類'} • ${item.difficulty || '未設定'} • ${item.duration_minutes ? item.duration_minutes + ' 分鐘' : '未設定時長'}
+                </ion-card-subtitle>
+              </ion-card-header>
+              
+              <ion-card-content>
+                ${item.image_url ? `
+                  <img class="item-image" src="${item.image_url}" alt="${item.title || item.sanskrit_name}" loading="lazy">
+                ` : ''}
+                
+                <p><strong>梵文名:</strong> ${item.sanskrit_name || '無'}</p>
+                <p><strong>教練:</strong> ${item.instructor || '未設定'}</p>
+                <p><strong>說明:</strong> ${item.description || '無說明'}</p>
+                
+                ${item.benefits && Array.isArray(item.benefits) ? `
+                  <p><strong>好處:</strong></p>
+                  <ul>
+                    ${item.benefits.map(benefit => `<li>${benefit}</li>`).join('')}
+                  </ul>
+                ` : ''}
+                
+                ${item.video_url ? `
+                  <div style="margin-top: 10px;">
+                    <ion-button href="${item.video_url}" target="_blank" fill="outline" size="small">
+                      <ion-icon name="play-circle-outline" slot="start"></ion-icon>
+                      觀看視頻
+                    </ion-button>
+                  </div>
+                ` : ''}
+                
+                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                  <ion-button 
+                    fill="clear" 
+                    size="small" 
+                    onclick="toggleBookmark(${item.id})"
+                    data-item-id="${item.id}"
+                    class="bookmark-btn"
+                    color="medium">
+                    <ion-icon name="heart-outline" slot="start"></ion-icon>
+                    收藏
+                  </ion-button>
+                  
+                  ${currentUser ? `
+                    <ion-chip color="primary" size="small">
+                      <ion-icon name="person"></ion-icon>
+                      <ion-label>已登錄</ion-label>
+                    </ion-chip>
+                  ` : `
+                    <ion-chip color="medium" size="small">
+                      <ion-icon name="person-outline"></ion-icon>
+                      <ion-label>訪客</ion-label>
+                    </ion-chip>
+                  `}
+                </div>
+              </ion-card-content>
+            `;
+            
+            page1Grid.appendChild(card);
+          });
+        }
+        
+        // 清空並重新顯示第2頁
+        const page2Grid = document.getElementById('page-2-grid');
+        const page2Section = document.getElementById('page-2-section');
+        
+        if (page2Items.length > 0) {
+          if (page2Grid) {
+            page2Grid.innerHTML = '';
+            page2Items.forEach(item => {
+              const card = document.createElement('ion-card');
+              card.className = 'pose-card';
+              
+              card.innerHTML = `
+                <ion-card-header>
+                  <ion-card-title>${item.title || item.sanskrit_name || '無標題'}</ion-card-title>
+                  <ion-card-subtitle>
+                    ${item.category || '未分類'} • ${item.difficulty || '未設定'} • ${item.duration_minutes ? item.duration_minutes + ' 分鐘' : '未設定時長'}
+                  </ion-card-subtitle>
+                </ion-card-header>
+                
+                <ion-card-content>
+                  ${item.image_url ? `
+                    <img class="item-image" src="${item.image_url}" alt="${item.title || item.sanskrit_name}" loading="lazy">
+                  ` : ''}
+                  
+                  <p><strong>梵文名:</strong> ${item.sanskrit_name || '無'}</p>
+                  <p><strong>教練:</strong> ${item.instructor || '未設定'}</p>
+                  <p><strong>說明:</strong> ${item.description || '無說明'}</p>
+                  
+                  ${item.benefits && Array.isArray(item.benefits) ? `
+                    <p><strong>好處:</strong></p>
+                    <ul>
+                      ${item.benefits.map(benefit => `<li>${benefit}</li>`).join('')}
+                    </ul>
+                  ` : ''}
+                  
+                  ${item.video_url ? `
+                    <div style="margin-top: 10px;">
+                      <ion-button href="${item.video_url}" target="_blank" fill="outline" size="small">
+                        <ion-icon name="play-circle-outline" slot="start"></ion-icon>
+                        觀看視頻
+                      </ion-button>
+                    </div>
+                  ` : ''}
+                  
+                  <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <ion-button 
+                      fill="clear" 
+                      size="small" 
+                      onclick="toggleBookmark(${item.id})"
+                      data-item-id="${item.id}"
+                      class="bookmark-btn"
+                      color="medium">
+                      <ion-icon name="heart-outline" slot="start"></ion-icon>
+                      收藏
+                    </ion-button>
+                    
+                    ${currentUser ? `
+                      <ion-chip color="primary" size="small">
+                        <ion-icon name="person"></ion-icon>
+                        <ion-label>已登錄</ion-label>
+                      </ion-chip>
+                    ` : `
+                      <ion-chip color="medium" size="small">
+                        <ion-icon name="person-outline"></ion-icon>
+                        <ion-label>訪客</ion-label>
+                      </ion-chip>
+                    `}
+                  </div>
+                </ion-card-content>
+              `;
+              
+              page2Grid.appendChild(card);
+            });
+          }
+          if (page2Section) {
+            page2Section.style.display = 'block';
+          }
+        } else {
+          if (page2Section) {
+            page2Section.style.display = 'none';
+          }
+        }
+        
+        // 更新書籤UI狀態
+        if (currentUser) {
+          updateBookmarkUI();
+        }
+        
+        // 更新分頁信息
+        updatePaginationInfo();
+        
+        console.log('✅ 所有數據重新顯示完成');
+      }
+
+      // 對現有數據進行整體排序而不重新載入
+      function applySortingToExistingData() {
+        if (allItems.length === 0) {
+          console.log('📊 沒有現有數據可排序，將觸發重新載入');
+          return false;
+        }
+
+        console.log('📊 對現有 ' + allItems.length + ' 項數據進行整體排序');
+        
+        // 應用排序
+        if (currentSearchParams.sort) {
+          allItems = applySorting(allItems, currentSearchParams.sort, currentSearchParams.order);
+          console.log('📊 整體排序完成:', currentSearchParams.sort, currentSearchParams.order);
+          console.log('📊 排序後的完整列表:', allItems.map(item => ({
+            title: item.title || item.sanskrit_name,
+            difficulty: item.difficulty
+          })));
+        }
+
+        filteredItems = [...allItems];
+        
+        // 重新顯示所有排序後的數據
+        redisplayAllItems();
+        
+        return true;
       }
       
       // 更新分頁信息
@@ -1173,6 +1450,17 @@
         errorMsg.textContent = message;
         error.style.display = 'block';
       }
+
+      // 通用警告/提示函數
+      function showAlert(message, type = 'info') {
+        console.log(`📢 ${type.toUpperCase()}: ${message}`);
+        
+        // 使用瀏覽器原生 alert 作為簡單實現
+        alert(message);
+        
+        // 或者可以在未來擴展為更美觀的 Toast 提示
+        // 例如：使用 Ionic Toast 組件
+      }
       
       // 載入數據
       async function loadData() {
@@ -1215,12 +1503,15 @@
           // 設置初始數據 - 只顯示第一頁的5個項目
           allItems = result.items;
           hasMoreData = result.hasMore;
+          
+          // 暫時不對第一頁進行排序，等載入所有數據後統一排序
           filteredItems = [...allItems];
           
           console.log(`✅ Step 7 首次載入成功: ${result.items.length} 項 (第1頁), hasMore: ${result.hasMore}`);
           console.log('📊 第1頁數據詳情:', {
-            itemIds: result.items.map(item => item.id),
-            itemTitles: result.items.map(item => item.title || item.sanskrit_name)
+            itemIds: allItems.map(item => item.id),
+            itemTitles: allItems.map(item => item.title || item.sanskrit_name),
+            difficulties: allItems.map(item => item.difficulty)
           });
           
           displayItems(allItems);
@@ -1303,6 +1594,75 @@
         console.log('🔄 用戶點擊重試');
         await loadMorePoses();
       }
+      
+      // 自定義排序功能 - 特別處理難度排序
+      function applySorting(items, sortField, sortOrder) {
+        if (!sortField || !items || items.length === 0) {
+          return items;
+        }
+        
+        console.log(`🔄 應用自定義排序: ${sortField} (${sortOrder})`);
+        
+        const sortedItems = [...items]; // 創建副本避免修改原數組
+        
+        if (sortField === 'difficulty') {
+          // 自定義難度排序: BEGINNER > INTERMEDIATE > ADVANCED
+          const difficultyOrder = {
+            'BEGINNER': 1,
+            'INTERMEDIATE': 2, 
+            'ADVANCED': 3
+          };
+          
+          sortedItems.sort((a, b) => {
+            const difficultyA = (a.difficulty || '').toUpperCase();
+            const difficultyB = (b.difficulty || '').toUpperCase();
+            
+            const orderA = difficultyOrder[difficultyA] || 999; // 未知難度排在最後
+            const orderB = difficultyOrder[difficultyB] || 999;
+            
+            if (sortOrder === 'desc') {
+              return orderB - orderA; // 降序：ADVANCED > INTERMEDIATE > BEGINNER
+            } else {
+              return orderA - orderB; // 升序：BEGINNER > INTERMEDIATE > ADVANCED
+            }
+          });
+          
+          console.log('✅ 難度排序完成:', {
+            order: sortOrder === 'asc' ? 'BEGINNER → INTERMEDIATE → ADVANCED' : 'ADVANCED → INTERMEDIATE → BEGINNER',
+            results: sortedItems.map(item => ({
+              title: item.title || item.sanskrit_name,
+              difficulty: item.difficulty
+            }))
+          });
+          
+        } else {
+          // 其他字段使用標準排序
+          sortedItems.sort((a, b) => {
+            let valueA = a[sortField] || '';
+            let valueB = b[sortField] || '';
+            
+            // 處理數字類型
+            if (sortField === 'duration_minutes') {
+              valueA = parseInt(valueA) || 0;
+              valueB = parseInt(valueB) || 0;
+            } else {
+              // 字符串類型轉為小寫進行比較
+              valueA = valueA.toString().toLowerCase();
+              valueB = valueB.toString().toLowerCase();
+            }
+            
+            if (sortOrder === 'desc') {
+              return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+            } else {
+              return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+            }
+          });
+          
+          console.log(`✅ ${sortField} 排序完成 (${sortOrder})`);
+        }
+        
+        return sortedItems;
+      }
 
       // API搜索功能 - Step 20
       let searchTimeout = null;
@@ -1327,6 +1687,16 @@
           currentSearchParams.order = selectedOrder;
           
           console.log('執行API搜索:', currentSearchParams);
+          
+          // 🔥 優化：如果只是排序變更且已有數據，直接對現有數據排序
+          if (!searchTerm && (!selectedCategory || selectedCategory === '') && selectedSort && allItems.length > 0) {
+            console.log('📊 檢測到純排序操作，對現有數據進行整體排序');
+            const sortingApplied = applySortingToExistingData();
+            if (sortingApplied) {
+              console.log('✅ 整體排序完成，無需重新載入');
+              return;
+            }
+          }
           
           // 如果有搜索條件，重新載入數據
           if (searchTerm || (selectedCategory && selectedCategory !== '') || selectedSort) {
@@ -2360,10 +2730,8 @@
         
         console.log(`更新了 ${bookmarkBtns.length} 個收藏按鈕，當前收藏數: ${bookmarks.length}`);
         
-        // Step 23: 如果啟用了收藏過濾，重新應用過濾
-        if (currentSearchParams.showBookmarkedOnly) {
-          applyBookmarkFilter();
-        }
+        // 🔥 修復：移除遞迴調用，避免無限循環
+        // 收藏過濾的應用應該由調用方控制，而不是在UI更新時自動觸發
       }
       
       function showSuccessMessage(message) {
@@ -2437,6 +2805,15 @@
         document.getElementById('category-select').addEventListener('ionChange', performAPISearch);
         document.getElementById('sort-select').addEventListener('ionChange', performAPISearch);
         document.getElementById('order-select').addEventListener('ionChange', performAPISearch);
+        
+        // 設置收藏過濾按鈕事件監聽器
+        const bookmarkFilterBtn = document.getElementById('bookmark-filter-btn');
+        if (bookmarkFilterBtn) {
+          bookmarkFilterBtn.addEventListener('click', toggleBookmarkFilter);
+          console.log('✅ 收藏過濾按鈕事件監聽器已設置');
+        } else {
+          console.error('❌ 找不到收藏過濾按鈕');
+        }
         
         document.getElementById('auth-btn').addEventListener('click', () => {
           if (currentUser) {
